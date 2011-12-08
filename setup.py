@@ -6,7 +6,7 @@ version = '0.1'
 setup(name='collective.loremipsum',
       version=version,
       description="Creates dummy content with populated Lorem Ipsum from loripum.net",
-      long_description=open("README.txt").read() + "\n" +
+      long_description=open("README.rst").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
