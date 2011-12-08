@@ -9,7 +9,7 @@ It populates the content with text and html retrieved from loripsum.net
 Just call /@@create-dummies in the context where you want dummy data to be
 created. 
 
-Here are all the parameters that can be passed to @@create-dummies:
+Here are all the parameters that can be passed via a query string to @@create-dummies:
 
 * type: string
     The portal_type of the content type to create. If this is not
@@ -25,25 +25,35 @@ Here are all the parameters that can be passed to @@create-dummies:
 * ol: bool 
     Add numbered lists.
 
-* dl: bool - Add description lists.
+* dl: bool 
+    Add description lists.
 
-* bq: bool - Add blockquotes.
+* bq: bool 
+    Add blockquotes.
 
-* code: bool - Add code samples.
+* code: bool 
+    Add code samples.
 
-* link: bool - Add links.
+* link: bool 
+    Add links.
 
-* prude: bool - Prude version.
+* prude: bool 
+    Prude version.
 
-* headers: bool - Add headers.
+* headers: bool 
+    Add headers.
 
-* allcaps: bool - Use ALL CAPS.
+* allcaps: bool 
+    Use ALL CAPS.
 
-* decorate: bool - Add bold, italic and marked text.
+* decorate: bool 
+    Add bold, italic and marked text.
 
-* publish: bool - Should the objects be published
+* publish: bool 
+    Should the objects be published
 
-* recurse: bool - Should objects be created recursively?
+* recurse: bool 
+    Should objects be created recursively?
 
 
 TODO: Date fields currently don't get dummy values
