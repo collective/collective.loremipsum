@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<layers>
+  <layer
+      name="collective.loremipsum"
+      interface="collective.loremipsum.interfaces.IProductLayer"
+      />
+</layers>
