@@ -15,8 +15,13 @@ Here are all the parameters that can be passed to @@create-dummies:
     The portal_type of the content type to create. If this is not
     specified, the types are gotten from the locallyAllowedTypes attribute, or from
     the allowed_content_types FTI attribute.
-* amount: integer - The amount of objects to create
-* ul: bool - Add unordered lists.
+
+* amount: integer 
+    The amount of objects to create
+
+* ul: bool 
+    Add unordered lists.
+
 * ol: bool - Add numbered lists.
 * dl: bool - Add description lists.
 * bq: bool - Add blockquotes.
