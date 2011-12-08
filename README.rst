@@ -22,16 +22,27 @@ Here are all the parameters that can be passed to @@create-dummies:
 * ul: bool 
     Add unordered lists.
 
-* ol: bool - Add numbered lists.
+* ol: bool 
+    Add numbered lists.
+
 * dl: bool - Add description lists.
+
 * bq: bool - Add blockquotes.
+
 * code: bool - Add code samples.
+
 * link: bool - Add links.
+
 * prude: bool - Prude version.
+
 * headers: bool - Add headers.
+
 * allcaps: bool - Use ALL CAPS.
+
 * decorate: bool - Add bold, italic and marked text.
+
 * publish: bool - Should the objects be published
+
 * recurse: bool - Should objects be created recursively?
 
 
