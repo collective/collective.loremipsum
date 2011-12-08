@@ -9,6 +9,9 @@ It populates the content with text and html retrieved from loripsum.net
 Just call /@@create-dummies in the context where you want dummy data to be
 created. 
 
+Configuration:
+==============
+
 Here are all the parameters that can be passed via a query string to @@create-dummies:
 
 * type: string
@@ -55,5 +58,7 @@ Here are all the parameters that can be passed via a query string to @@create-du
 * recurse: bool 
     Should objects be created recursively?
 
+TODO:
+=====
 
-TODO: Date fields currently don't get dummy values
+*  Date fields currently don't get dummy values
