@@ -6,7 +6,7 @@ website with.
 
 It populates the content with text and html retrieved from `loripsum.net`_
 
-Just call /@@create-dummies in the context where you want dummy data to be
+Just call **/@@create-dummies** in the context where you want dummy data to be
 created. 
 
 .. _loripsum.net: http//loripsum.net

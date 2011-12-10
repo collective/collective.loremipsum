@@ -1,24 +1,32 @@
-import transaction
+import time
+import datetime
 import logging
+import random
+import transaction
 import urllib
 from htmllaundry import StripMarkup
-from time import time
+
 from zope.container.interfaces import INameChooser
 from zope.component import getMultiAdapter, getUtility
-from zope.component.interfaces import ComponentLookupError
 from zope.schema import interfaces
+
 from plone.dexterity.interfaces import IDexterityContent
 from plone.dexterity.interfaces import IDexterityFTI
 from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
+
 from Acquisition import aq_inner, aq_base
-from Products.Five import BrowserView
-from Products.CMFCore.utils import getToolByName
-from Products.CMFCore.WorkflowCore import WorkflowException
+from DateTime import DateTime
+from zExceptions import BadRequest
+
+from Products.Archetypes.Widget import RichWidget
+from Products.Archetypes.interfaces.field import IStringField
+from Products.Archetypes.interfaces.field import ITextField
+from Products.Archetypes.interfaces.field import IDateTimeField
 from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
-from Products.Archetypes.Widget import RichWidget
-from Products.Archetypes.interfaces.field import ITextField
-from Products.Archetypes.interfaces.field import IStringField
+from Products.CMFCore.WorkflowCore import WorkflowException
+from Products.CMFCore.utils import getToolByName
+from Products.Five import BrowserView
 
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL, OPTIONS
@@ -68,7 +76,7 @@ class CreateDummyData(BrowserView):
 
     def create_subobjects(self, context, total=0, types=None):
         request = self.request
-        amount = request.get('amount', 3)
+        amount = int(request.get('amount', 3))
         if types is None:
             base = aq_base(context)
             if hasattr(base, 'constrainTypesMode') and base.constrainTypesMode:
@@ -88,7 +96,6 @@ class CreateDummyData(BrowserView):
                 
             for n in range(0, amount):
                 obj = self.create_object(context, portal_type)
-                transaction.commit()
                 total += 1
                 if request.get('recurse'):
                     total = self.create_subobjects(obj, total=total, types=None)
@@ -102,7 +109,11 @@ class CreateDummyData(BrowserView):
         response = urllib.urlopen(url).read()
         title = StripMarkup(response.decode('utf-8')).split('.')[1]
         id= INameChooser(context).chooseName(title, context)
-        id = context.invokeFactory(portal_type, id=id)
+        try:
+            id = context.invokeFactory(portal_type, id=id)
+        except BadRequest:
+            id += '%f' % time.time()
+            
         obj = context[id]
 
         if IDexterityContent.providedBy(obj):
@@ -140,7 +151,7 @@ class CreateDummyData(BrowserView):
         for key, default in OPTIONS.items():
             if self.request.get(key, default):
                 url += '/%s' % key
-        return urllib.urlopen(url).read()
+        return urllib.urlopen(url).read().decode('utf-8')
 
 
     def populate_dexterity_type(self, obj):
@@ -154,7 +165,7 @@ class CreateDummyData(BrowserView):
             field = fields[i].field 
             name = field.__name__
 
-            if name ==  'title':
+            if name == 'title':
                 continue
 
             if interfaces.ITextLine.providedBy(field):
@@ -166,9 +177,17 @@ class CreateDummyData(BrowserView):
                    value = self.get_rich_text() 
                 else:
                    value = self.get_text_paragraph() 
+
+            elif interfaces.IDatetime.providedBy(field):
+                days = random.random()*10 + random.randint(0,1)*(-10)
+                value = datetime.datetime.now() + datetime.timedelta(days,0)
+
+            elif interfaces.IDate.providedBy(field):
+                days = random.random()*10 + random.randint(0,1)*(-10)
+                value = datetime.datetime.now() + datetime.timedelta(days,0)
+
             else:
                 continue
-
             field.set(obj, value)
 
 
@@ -189,10 +208,12 @@ class CreateDummyData(BrowserView):
                    value = self.get_rich_text() 
                 else:
                    value = self.get_text_paragraph() 
+            elif IDateTimeField.providedBy(field):
+                # Dates randomly between now and +- 10 days
+                days = random.random()*10
+                value = DateTime() + days
             else:
                 continue
-
             field.set(obj, value)
-
 
 
