@@ -3,14 +3,14 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:i18n="http://namespaces.zope.org/i18n"
     xmlns:z3c="http://namespaces.zope.org/z3c"
-    i18n_domain="distancelearning.types">
+    i18n_domain="collective.loremipsum">
 
     <!-- XXX consider restricting the page to folderish types -->
     <browser:page
         for="*"
         name="create-dummies"
         class=".views.CreateDummyData"
-        layer="distancelearning.types.interfaces.IProductLayer"
+        layer="collective.loremipsum.interfaces.IProductLayer"
         permission="cmf.ModifyPortalContent"
         />
 
