@@ -112,6 +112,7 @@ class CreateDummyData(BrowserView):
             id = context.invokeFactory(portal_type, id=id)
         except BadRequest:
             id += '%f' % time.time()
+            id = context.invokeFactory(portal_type, id=id)
             
         obj = context[id]
 
