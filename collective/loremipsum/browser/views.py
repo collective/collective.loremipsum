@@ -2,7 +2,6 @@ import time
 import datetime
 import logging
 import random
-import transaction
 import urllib
 from htmllaundry import StripMarkup
 
@@ -18,10 +17,10 @@ from Acquisition import aq_inner, aq_base
 from DateTime import DateTime
 from zExceptions import BadRequest
 
+from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
-from Products.Archetypes.interfaces.field import IStringField
-from Products.Archetypes.interfaces.field import ITextField
-from Products.Archetypes.interfaces.field import IDateTimeField
+from Products.Archetypes.interfaces.vocabulary import IVocabulary
+from Products.Archetypes.interfaces import field  as atfield
 from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
 from Products.CMFCore.WorkflowCore import WorkflowException
@@ -179,11 +178,11 @@ class CreateDummyData(BrowserView):
                    value = self.get_text_paragraph() 
 
             elif interfaces.IDatetime.providedBy(field):
-                days = random.random()*10 + random.randint(0,1)*(-10)
+                days = random.random()*10 * (random.randint(-1,1) or 1)
                 value = datetime.datetime.now() + datetime.timedelta(days,0)
 
             elif interfaces.IDate.providedBy(field):
-                days = random.random()*10 + random.randint(0,1)*(-10)
+                days = random.random()*10 * (random.randint(-1,1) or 1)
                 value = datetime.datetime.now() + datetime.timedelta(days,0)
 
             else:
@@ -200,20 +199,37 @@ class CreateDummyData(BrowserView):
             if name in ['title', 'id']:
                 continue
 
-            if IStringField.providedBy(field):
-                value = self.get_text_line()
-            elif ITextField.providedBy(field):
+            if shasattr(field, 'vocabulary') and IVocabulary.providedBy(field.vocabulary):
+                vocab = field.vocabulary.getVocabularyDict(obj)
+                value = vocab.keys()[random.randint(0, len(vocab.keys()))]
+                
+            elif atfield.IStringField.providedBy(field):
+                validators = [v[0] for v in field.validators]
+                if 'isURL' in validators:
+                    value = 'http://en.wikipedia.com/wiki/Lorem_ipsum'
+                elif 'isEmail' in validators:
+                    value = 'loremipsum@mail.com'
+                else:
+                    value = self.get_text_line()
+
+            elif atfield.ITextField.providedBy(field):
                 widget = field.widget
                 if isinstance(widget, RichWidget):
                    value = self.get_rich_text() 
                 else:
                    value = self.get_text_paragraph() 
-            elif IDateTimeField.providedBy(field):
-                # Dates randomly between now and +- 10 days
-                days = random.random()*10
-                value = DateTime() + days
+
+            elif atfield.IBooleanField.providedBy(field):
+                value = random.randint(0,1) and True or False
             else:
                 continue
+
             field.set(obj, value)
+
+        if IATEvent.providedBy(obj):
+            days = random.random()*20 * (random.randint(-1,1) or 1)
+            value = DateTime() + days
+            obj.setStartDate(value)
+            obj.setEndDate(value+random.random()*3)
 
 
