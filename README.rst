@@ -8,8 +8,6 @@ It populates the content with text and html retrieved from `loripsum.net`_.
 The user data for the dummy members were downloaded from
 `fakenamegenerator.com`_.
 
-
-
 * To create dummy content type instances, just call **/@@create-dummy-data** in the context where you want dummy data to be created. 
 
 * To register dummy users, call **/@@create-dummy-users**
@@ -67,7 +65,3 @@ Here are all the parameters that can be passed via a query string to @@create-du
 * recurse: bool 
     Should objects be created recursively?
 
-TODO:
-=====
-
-*  Date fields currently don't get dummy values
