@@ -1,15 +1,22 @@
 Introduction
 ============
 
-collective.loremipsum is a developer tool to create dummy content to test your
-website with.
+collective.loremipsum is a developer tool to create dummy content and/or
+members inside your Plone to play and test with.
 
-It populates the content with text and html retrieved from `loripsum.net`_
+It populates the content with text and html retrieved from `loripsum.net`_.
+The user data for the dummy members were downloaded from
+`fakenamegenerator.com`_.
 
-Just call **/@@create-dummies** in the context where you want dummy data to be
-created. 
+
+
+* To create dummy content type instances, just call **/@@create-dummy-data** in the context where you want dummy data to be created. 
+
+* To register dummy users, call **/@@create-dummy-users**
+
 
 .. _loripsum.net: http//loripsum.net
+.. _fakenamegenerator.com: http://www.fakenamegenerator.com
 
 Configuration:
 ==============
