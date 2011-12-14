@@ -1,3 +1,5 @@
+import csv
+import os
 import time
 import datetime
 import logging
@@ -8,6 +10,8 @@ from htmllaundry import StripMarkup
 from zope.container.interfaces import INameChooser
 from zope.component import getMultiAdapter, getUtility
 from zope.schema import interfaces
+
+from zope.app.component.hooks import getSite
 
 from plone.dexterity.interfaces import IDexterityContent
 from plone.dexterity.interfaces import IDexterityFTI
@@ -26,11 +30,69 @@ from Products.Archetypes.utils import shasattr
 from Products.CMFCore.WorkflowCore import WorkflowException
 from Products.CMFCore.utils import getToolByName
 from Products.Five import BrowserView
+from Products.statusmessages.interfaces import IStatusMessage
 
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL, OPTIONS
 
 log = logging.getLogger(__name__)
+
+class RegisterDummyUsers(BrowserView):
+    """ """
+
+    def __call__(self, **kw):
+        """ """
+        site = getSite()
+        regtool = getToolByName(site, 'portal_registration')
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        datadir = os.path.join(basedir, '../dummydata')
+        file = open(datadir+'/memberdata.csv')
+        reader = csv.reader(file)
+        row_num = 0
+        for row in reader:
+            if row_num == 0:
+                pass #header
+            else:   
+                name = row[0]
+                surname = row[1]
+                fullname = name + ' ' + surname
+                email = row[8]
+                username = self.sanitize(fullname.lower().replace(' ', '-'))
+                properties = {
+                    'username': username,
+                    'fullname': fullname,
+                    'email': email,
+                }
+                try:
+                    # addMember() returns MemberData object
+                    member = regtool.addMember(username, 'secret', properties=properties)
+                except ValueError, e:
+                    # Give user visual feedback what went wrong
+                    IStatusMessage(self.request).add(_(u"Could not create the users. %s" % username) + unicode(e), "error") 
+                    continue
+                else:
+                    log.info('Registered dummy user: %s' % fullname)
+                    row_num += 1
+
+        IStatusMessage(self.request).add(_(u"Succesfully created %d users." % row_num), "info") 
+        return self.request.RESPONSE.redirect('/'.join(self.context.getPhysicalPath()))
+
+    def sanitize(self, str):
+        for code, ascii in [('\xc3\xbc', 'ue'), 
+                            ('\xc3\xb6', 'oe'),
+                            ('\xc3\xa4', 'ae'), 
+                            ('\xc3\xa7', 'c'),
+                            ('\xc3\xa8', 'e'), 
+                            ('\xc3\xa9', 'e'),
+                            ('\xc3\xab', 'e'), 
+                            ('\xc3\xaf', 'i'),
+                            ('\xc5\x9e', 'S'), 
+                            ('\xc5\x9f', 'e'),
+                            ]:
+            str = str.replace(code, ascii)
+            str = str.decode('utf-8').encode('ascii', 'ignore')
+        return str
+
 
 class CreateDummyData(BrowserView):
     """ """

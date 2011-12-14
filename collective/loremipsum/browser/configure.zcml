@@ -8,8 +8,16 @@
     <!-- XXX consider restricting the page to folderish types -->
     <browser:page
         for="*"
-        name="create-dummies"
+        name="create-dummy-data"
         class=".views.CreateDummyData"
+        layer="collective.loremipsum.interfaces.IProductLayer"
+        permission="cmf.ModifyPortalContent"
+        />
+        
+    <browser:page
+        for="*"
+        name="create-dummy-users"
+        class=".views.RegisterDummyUsers"
         layer="collective.loremipsum.interfaces.IProductLayer"
         permission="cmf.ModifyPortalContent"
         />
