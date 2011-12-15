@@ -43,6 +43,7 @@ class RegisterDummyUsers(BrowserView):
     def __call__(self, **kw):
         """ """
         site = getSite()
+        mdata = getToolByName(site, 'portal_memberdata')
         regtool = getToolByName(site, 'portal_registration')
         basedir = os.path.abspath(os.path.dirname(__file__))
         datadir = os.path.join(basedir, '../dummydata')
@@ -51,18 +52,25 @@ class RegisterDummyUsers(BrowserView):
         row_num = 0
         for row in reader:
             if row_num == 0:
-                pass #header
+                # We will use the headers in the first row as variable names to
+                # store the user's details in portal_memberdata.
+                dummy_fields = row
             else:   
-                name = row[0]
-                surname = row[1]
-                fullname = name + ' ' + surname
-                email = row[8]
+                properties = {}
+                for field in dummy_fields:
+                    # Since we don't know what properties might be in
+                    # portal_memberdata, for example postal_code or zipcode or
+                    # zip_code, we make give each header a list of possible values
+                    # separated by spaces.
+                    fields = field.split(' ')
+                    for f in fields:
+                        if hasattr(mdata, f):
+                            properties[f] = row[dummy_fields.index(field)]
+
+                fullname = row[0] + ' ' + row[1] 
                 username = self.sanitize(fullname.lower().replace(' ', '-'))
-                properties = {
-                    'username': username,
-                    'fullname': fullname,
-                    'email': email,
-                }
+                properties['username'] = username 
+                properties['fullname'] = fullname
                 try:
                     # addMember() returns MemberData object
                     member = regtool.addMember(username, 'secret', properties=properties)
@@ -74,7 +82,7 @@ class RegisterDummyUsers(BrowserView):
                     log.info('Registered dummy user: %s' % fullname)
             row_num += 1
 
-        IStatusMessage(self.request).add(_(u"Succesfully created %d users." % row_num), "info") 
+        IStatusMessage(self.request).add(_(u"Succesfully created %d users." % (row_num-1)), "info") 
         return self.request.RESPONSE.redirect('/'.join(self.context.getPhysicalPath()))
 
     def sanitize(self, str):
@@ -231,11 +239,17 @@ class CreateDummyData(BrowserView):
                 continue
 
             if interfaces.IChoice.providedBy(field):
-                if shasattr(field, 'vocabulary'):
-                    index  = random.randint(0, len(field.vocabulary))
-                    value = field.vocabulary._terms[index].value
+                if shasattr(field, 'vocabulary') and field.vocabulary:
+                    vocabulary = field.vocabulary
+                elif shasattr(field, 'vocabularyName') and field.vocabularyName:
+                    factory = getUtility(
+                                    interfaces.IVocabularyFactory, 
+                                    field.vocabularyName)
+                    vocabulary = factory(obj)
                 else:
                     continue
+                index  = random.randint(0, len(vocabulary)-1)
+                value = vocabulary._terms[index].value
 
             elif interfaces.ITextLine.providedBy(field):
                 value = self.get_text_line()
@@ -272,7 +286,7 @@ class CreateDummyData(BrowserView):
 
             if shasattr(field, 'vocabulary') and IVocabulary.providedBy(field.vocabulary):
                 vocab = field.vocabulary.getVocabularyDict(obj)
-                value = vocab.keys()[random.randint(0, len(vocab.keys()))]
+                value = vocab.keys()[random.randint(0, len(vocab.keys())-1)]
                 
             elif atfield.IStringField.providedBy(field):
                 validators = [v[0] for v in field.validators]
