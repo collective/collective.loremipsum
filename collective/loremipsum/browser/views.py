@@ -72,7 +72,7 @@ class RegisterDummyUsers(BrowserView):
                     continue
                 else:
                     log.info('Registered dummy user: %s' % fullname)
-                    row_num += 1
+            row_num += 1
 
         IStatusMessage(self.request).add(_(u"Succesfully created %d users." % row_num), "info") 
         return self.request.RESPONSE.redirect('/'.join(self.context.getPhysicalPath()))
