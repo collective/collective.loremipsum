@@ -230,8 +230,16 @@ class CreateDummyData(BrowserView):
             if name == 'title':
                 continue
 
-            if interfaces.ITextLine.providedBy(field):
+            if interfaces.IChoice.providedBy(field):
+                if shasattr(field, 'vocabulary'):
+                    index  = random.randint(0, len(field.vocabulary))
+                    value = field.vocabulary._terms[index].value
+                else:
+                    continue
+
+            elif interfaces.ITextLine.providedBy(field):
                 value = self.get_text_line()
+
             elif interfaces.IText.providedBy(field):
                 widget = view.form_instance.widgets._data_values[i]
 
