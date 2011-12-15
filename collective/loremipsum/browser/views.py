@@ -24,6 +24,7 @@ from zExceptions import BadRequest
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces.vocabulary import IVocabulary
+from Products.Archetypes.interfaces.base import IBaseContent 
 from Products.Archetypes.interfaces import field  as atfield
 from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
@@ -148,9 +149,11 @@ class CreateDummyData(BrowserView):
         amount = int(request.get('amount', 3))
         if types is None:
             base = aq_base(context)
-            if hasattr(base, 'constrainTypesMode') and base.constrainTypesMode:
-                types = context.locallyAllowedTypes
-            else:
+            if IBaseContent.providedBy(base):
+                types = []
+                if hasattr(base, 'constrainTypesMode') and base.constrainTypesMode:
+                    types = context.locallyAllowedTypes
+            elif IDexterityContent.providedBy(base):
                 fti = getUtility(IDexterityFTI, name=context.portal_type)
                 types = fti.filter_content_types and fti.allowed_content_types
                 if not types:
@@ -158,6 +161,13 @@ class CreateDummyData(BrowserView):
                             'provide a type argument.')
                     addStatusMessage(request, msg)
                     return total
+            else:
+                msg = _("The context doesn't provide IBaseContent or "
+                        "IDexterityContent. It might be a Plone Site object, "
+                        "but either way, I haven't gotten around to dealing with "
+                        "it. Why don't you jump in and help?")
+                addStatusMessage(request, msg)
+                return total
 
         for portal_type in types:
             if portal_type in ['File', 'Image', 'Folder']:
