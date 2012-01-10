@@ -275,7 +275,7 @@ class CreateDummyData(BrowserView):
                 value = vocab.keys()[random.randint(0, len(vocab.keys()))]
                 
             elif atfield.IStringField.providedBy(field):
-                validators = [v[0] for v in field.validators]
+                validators = [v[0].name for v in field.validators]
                 if 'isURL' in validators:
                     value = 'http://en.wikipedia.com/wiki/Lorem_ipsum'
                 elif 'isEmail' in validators:
