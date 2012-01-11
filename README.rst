@@ -19,7 +19,7 @@ The user data for the dummy members were downloaded from
 Configuration:
 ==============
 
-Here are all the parameters that can be passed via a query string to @@create-dummies:
+Here are all the parameters that can be passed via a query string to @@create-dummy-data:
 
 * type: string
     The portal_type of the content type to create. If this is not
