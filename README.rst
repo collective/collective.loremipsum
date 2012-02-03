@@ -10,7 +10,7 @@ The user data for the dummy members were downloaded from
 
 * After it is installed (via the Plone control panel or the portal_quickinstaller tool), you'll see a new editbar tab labeled "Populate" for all folderish content types. Clicking on this tab brings up a form with parameters for specifying for example the kinds of objects to create, how many and the lorem ipsum rich text formatting.
 
-* You can also register 500 dummy users, but for the moment only by calling the browserview: **/@@create-dummy-users**
+* You can also register 500 dummy users, but for the moment only by calling the browserview: **@@create-dummy-users**
 
 .. _loripsum.net: http//loripsum.net
 .. _fakenamegenerator.com: http://www.fakenamegenerator.com
