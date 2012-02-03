@@ -111,6 +111,7 @@ def get_text_line():
         response = str(e)
     return StripMarkup(response.decode('utf-8')).split('.')[1]
 
+
 def get_text_paragraph():
     url =  BASE_URL + '/1/short'
     try:
@@ -119,10 +120,11 @@ def get_text_paragraph():
         response = str(e)
     return StripMarkup(response.decode('utf-8'))
 
+
 def get_rich_text(data):
     url =  BASE_URL + '/3/short'
     for key, default in OPTIONS.items():
-        if data.get(key, default):
+        if data.get(key):
             url += '/%s' % key
     return urllib.urlopen(url).read().decode('utf-8')
 

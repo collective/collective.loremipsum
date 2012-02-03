@@ -13,6 +13,7 @@ from Products.statusmessages.interfaces import IStatusMessage
 
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.utils import create_subobjects
+from collective.loremipsum.config import OPTIONS
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +118,13 @@ class CreateDummyData(BrowserView):
         if isinstance(types, str):
             types = [types]
 
-        total = create_subobjects(context, self.request, 0, types)
+        # There are some formatting options that we want enabled by default. If
+        # the user didn't specify them in the URL, we add them here.
+        for key, default in OPTIONS.items():
+            if not request.has_key(key):
+                request.set(key, default)
+
+        total = create_subobjects(context, request, 0, types)
         addStatusMessage(request, _('%d objects successfully created' % total))
         return request.RESPONSE.redirect('/'.join(context.getPhysicalPath()))
 
