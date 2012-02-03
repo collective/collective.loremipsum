@@ -5,13 +5,20 @@
     xmlns:z3c="http://namespaces.zope.org/z3c"
     i18n_domain="collective.loremipsum">
 
-    <!-- XXX consider restricting the page to folderish types -->
+    <browser:page
+        for="*"
+        name="populate"
+        class=".populate.Populate"
+        layer="collective.loremipsum.interfaces.IProductLayer"
+        permission="cmf.AddPortalContent"
+        />
+
     <browser:page
         for="*"
         name="create-dummy-data"
         class=".views.CreateDummyData"
         layer="collective.loremipsum.interfaces.IProductLayer"
-        permission="cmf.ModifyPortalContent"
+        permission="cmf.AddPortalContent"
         />
         
     <browser:page
@@ -19,7 +26,7 @@
         name="create-dummy-users"
         class=".views.RegisterDummyUsers"
         layer="collective.loremipsum.interfaces.IProductLayer"
-        permission="cmf.ModifyPortalContent"
+        permission="cmf.AddPortalContent"
         />
 
 </configure>

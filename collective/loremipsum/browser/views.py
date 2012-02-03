@@ -1,40 +1,18 @@
 import csv
 import os
-import time
-import datetime
 import logging
-import random
-import urllib
-from htmllaundry import StripMarkup
-
-from zope.container.interfaces import INameChooser
-from zope.component import getMultiAdapter, getUtility
-from zope.schema import interfaces
 
 from zope.app.component.hooks import getSite
 
-from plone.dexterity.interfaces import IDexterityContent
-from plone.dexterity.interfaces import IDexterityFTI
-from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
+from Acquisition import aq_inner
 
-from Acquisition import aq_inner, aq_base
-from DateTime import DateTime
-from zExceptions import BadRequest
-
-from Products.ATContentTypes.interfaces import IATEvent
-from Products.Archetypes.Widget import RichWidget
-from Products.Archetypes.interfaces.vocabulary import IVocabulary
-from Products.Archetypes.interfaces.base import IBaseContent 
-from Products.Archetypes.interfaces import field  as atfield
 from Products.Archetypes.utils import addStatusMessage
-from Products.Archetypes.utils import shasattr
-from Products.CMFCore.WorkflowCore import WorkflowException
 from Products.CMFCore.utils import getToolByName
 from Products.Five import BrowserView
 from Products.statusmessages.interfaces import IStatusMessage
 
 from collective.loremipsum import MessageFactory as _
-from collective.loremipsum.config import BASE_URL, OPTIONS
+from collective.loremipsum.utils import create_subobjects
 
 log = logging.getLogger(__name__)
 
@@ -139,192 +117,8 @@ class CreateDummyData(BrowserView):
         if isinstance(types, str):
             types = [types]
 
-        total = self.create_subobjects(context, 0, types)
+        total = create_subobjects(context, self.request, 0, types)
         addStatusMessage(request, _('%d objects successfully created' % total))
         return request.RESPONSE.redirect('/'.join(context.getPhysicalPath()))
-
-
-    def create_subobjects(self, context, total=0, types=None):
-        request = self.request
-        amount = int(request.get('amount', 3))
-        if types is None:
-            base = aq_base(context)
-            if IBaseContent.providedBy(base):
-                types = []
-                if hasattr(base, 'constrainTypesMode') and base.constrainTypesMode:
-                    types = context.locallyAllowedTypes
-            elif IDexterityContent.providedBy(base):
-                fti = getUtility(IDexterityFTI, name=context.portal_type)
-                types = fti.filter_content_types and fti.allowed_content_types
-                if not types:
-                    msg = _('Either restrict the addable types in this folder or ' \
-                            'provide a type argument.')
-                    addStatusMessage(request, msg)
-                    return total
-            else:
-                msg = _("The context doesn't provide IBaseContent or "
-                        "IDexterityContent. It might be a Plone Site object, "
-                        "but either way, I haven't gotten around to dealing with "
-                        "it. Why don't you jump in and help?")
-                addStatusMessage(request, msg)
-                return total
-
-        for portal_type in types:
-            if portal_type in ['File', 'Image', 'Folder']:
-                continue
-                
-            for n in range(0, amount):
-                obj = self.create_object(context, portal_type)
-                total += 1
-                if request.get('recurse'):
-                    total = self.create_subobjects(obj, total=total, types=None)
-        return total
-
-
-    def create_object(self, context, portal_type):
-        """ """
-        request = self.request
-        url = BASE_URL + '/1/short'
-        response = urllib.urlopen(url).read()
-        title = StripMarkup(response.decode('utf-8')).split('.')[1]
-        id= INameChooser(context).chooseName(title, context)
-        try:
-            id = context.invokeFactory(portal_type, id=id)
-        except BadRequest:
-            id += '%f' % time.time()
-            id = context.invokeFactory(portal_type, id=id)
-            
-        obj = context[id]
-
-        if IDexterityContent.providedBy(obj):
-            if shasattr(obj, 'title'):
-                obj.title = title
-                self.populate_dexterity_type(obj)
-        else:
-            obj.setTitle(title)
-            self.populate_archetype(obj)
-
-        if request.get('publish', True):
-            wftool = getToolByName(context, 'portal_workflow')
-            try:
-                wftool.doActionFor(obj, 'publish')
-            except WorkflowException, e:
-                log.error(e)
-
-        obj.reindexObject()
-        log.info('%s Object created' % obj.portal_type)
-        return obj
-
-
-    def get_text_line(self):
-        url = BASE_URL + '/1/short'
-        response = urllib.urlopen(url).read()
-        return StripMarkup(response.decode('utf-8')).split('.')[1]
-
-    def get_text_paragraph(self):
-        url =  BASE_URL + '/1/short'
-        response = urllib.urlopen(url).read()
-        return StripMarkup(response.decode('utf-8'))
-
-    def get_rich_text(self):
-        url =  BASE_URL + '/3/short'
-        for key, default in OPTIONS.items():
-            if self.request.get(key, default):
-                url += '/%s' % key
-        return urllib.urlopen(url).read().decode('utf-8')
-
-
-    def populate_dexterity_type(self, obj):
-        request = self.request
-        view = getMultiAdapter((obj, request), name="edit")
-        view.update()
-        view.form_instance.render()
-        fields = view.form_instance.fields._data_values
-
-        for i in range(0, len(fields)):
-            field = fields[i].field 
-            name = field.__name__
-
-            if name == 'title':
-                continue
-
-            if interfaces.IChoice.providedBy(field):
-                if shasattr(field, 'vocabulary') and field.vocabulary:
-                    vocabulary = field.vocabulary
-                elif shasattr(field, 'vocabularyName') and field.vocabularyName:
-                    factory = getUtility(
-                                    interfaces.IVocabularyFactory, 
-                                    field.vocabularyName)
-                    vocabulary = factory(obj)
-                else:
-                    continue
-                index  = random.randint(0, len(vocabulary)-1)
-                value = vocabulary._terms[index].value
-
-            elif interfaces.ITextLine.providedBy(field):
-                value = self.get_text_line()
-
-            elif interfaces.IText.providedBy(field):
-                widget = view.form_instance.widgets._data_values[i]
-
-                if IWysiwygWidget.providedBy(widget):
-                   value = self.get_rich_text() 
-                else:
-                   value = self.get_text_paragraph() 
-
-            elif interfaces.IDatetime.providedBy(field):
-                days = random.random()*10 * (random.randint(-1,1) or 1)
-                value = datetime.datetime.now() + datetime.timedelta(days,0)
-
-            elif interfaces.IDate.providedBy(field):
-                days = random.random()*10 * (random.randint(-1,1) or 1)
-                value = datetime.datetime.now() + datetime.timedelta(days,0)
-
-            else:
-                continue
-            field.set(obj, value)
-
-
-    def populate_archetype(self, obj):
-        request = self.request
-        fields = obj.Schema().fields()
-
-        for field in fields:
-            name = field.__name__
-            if name in ['title', 'id']:
-                continue
-
-            if shasattr(field, 'vocabulary') and IVocabulary.providedBy(field.vocabulary):
-                vocab = field.vocabulary.getVocabularyDict(obj)
-                value = vocab.keys()[random.randint(0, len(vocab.keys())-1)]
-                
-            elif atfield.IStringField.providedBy(field):
-                validators = [v[0].name for v in field.validators]
-                if 'isURL' in validators:
-                    value = 'http://en.wikipedia.com/wiki/Lorem_ipsum'
-                elif 'isEmail' in validators:
-                    value = 'loremipsum@mail.com'
-                else:
-                    value = self.get_text_line()
-
-            elif atfield.ITextField.providedBy(field):
-                widget = field.widget
-                if isinstance(widget, RichWidget):
-                   value = self.get_rich_text() 
-                else:
-                   value = self.get_text_paragraph() 
-
-            elif atfield.IBooleanField.providedBy(field):
-                value = random.randint(0,1) and True or False
-            else:
-                continue
-
-            field.set(obj, value)
-
-        if IATEvent.providedBy(obj):
-            days = random.random()*20 * (random.randint(-1,1) or 1)
-            value = DateTime() + days
-            obj.setStartDate(value)
-            obj.setEndDate(value+random.random()*3)
 
 
