@@ -4,6 +4,8 @@ import random
 import time
 import urllib
 from htmllaundry import StripMarkup
+from StringIO import StringIO
+from base64 import decodestring
 
 from zope.container.interfaces import INameChooser
 from zope.component import getMultiAdapter, getUtility
@@ -58,7 +60,7 @@ def create_subobjects(context, data, total=0):
             return total
 
     for portal_type in types:
-        if portal_type in ['File', 'Image', 'Folder']:
+        if portal_type in ['File', 'Folder']:
             continue
             
         for n in range(0, amount):
@@ -75,11 +77,18 @@ def create_object(context, portal_type, data):
     response = urllib.urlopen(url).read()
     title = StripMarkup(response.decode('utf-8')).split('.')[1]
     id = INameChooser(context).chooseName(title, context)
+    myfile = None
+    if portal_type == 'Image':
+        myfile = StringIO(decodestring('R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
+        myfile.filename = '.'.join((get_text_line().split(' ')[-1], 'gif'))
+        args = dict(id=id, file=myfile)
+    else:
+        args = dict(id=id)
     try:
-        id = context.invokeFactory(portal_type, id=id)
+        id = context.invokeFactory(portal_type, **args)
     except BadRequest:
         id += '%f' % time.time()
-        id = context.invokeFactory(portal_type, id=id)
+        id = context.invokeFactory(portal_type, **args)
         
     obj = context[id]
 
