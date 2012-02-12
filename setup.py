@@ -5,7 +5,7 @@ version = '0.2dev'
 
 setup(name='collective.loremipsum',
       version=version,
-      description="Creates dummy content with populated Lorem Ipsum from loripum.net",
+      description="Creates dummy content with populated Lorem Ipsum.",
       long_description=open("README.rst").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       # Get more strings from
