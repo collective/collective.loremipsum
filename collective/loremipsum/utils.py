@@ -1,5 +1,6 @@
 import datetime
 import logging
+import loremipsum
 import random
 import time
 import urllib
@@ -7,15 +8,17 @@ from htmllaundry import StripMarkup
 from StringIO import StringIO
 from base64 import decodestring
 
-from zope.container.interfaces import INameChooser
 from zope.component import getMultiAdapter, getUtility
+from zope.container.interfaces import INameChooser
 from zope.schema import interfaces
 
+from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
 from plone.dexterity.interfaces import IDexterityContent
 from plone.dexterity.interfaces import IDexterityFTI
-from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
+from plone.uuid.interfaces import IUUID
 
 from Acquisition import aq_base
+from OFS.interfaces import IObjectManager
 from DateTime import DateTime
 from zExceptions import BadRequest
 
@@ -34,7 +37,7 @@ from collective.loremipsum.config import BASE_URL, OPTIONS
 
 log = logging.getLogger(__name__)
 
-def create_subobjects(context, data, total=0):
+def create_subobjects(root, context, data, total=0):
     amount = int(data.get('amount', 3))
     types = data.get('portal_type')
     if types is None:
@@ -59,15 +62,34 @@ def create_subobjects(context, data, total=0):
             addStatusMessage(context.request, msg)
             return total
 
+    recurse = False
+    if data.get('recurse', None) not in [None, '0', 'False', False]:
+        depth = 0
+        node = context
+        while IUUID(node) != IUUID(root):
+            depth += 1
+            node = node.aq_parent
+
+        if depth < data.get('recursion_depth'):
+            recurse = True
+
     for portal_type in types:
-        if portal_type in ['File', 'Folder']:
-            continue
-            
         for n in range(0, amount):
             obj = create_object(context, portal_type, data)
             total += 1
-            if data.get('recurse', None) not in [None, '0', 'False', False]:
-                total = create_subobjects(obj, data, total)
+
+            if not IObjectManager.providedBy(obj):
+                continue
+
+            if recurse:
+                if shasattr(obj, 'getLocallyAllowedTypes'):
+                    data['portal_type'] = \
+                            list(obj.getLocallyAllowedTypes())
+                elif shasattr(obj, 'allowedContentTypes'):
+                    data['portal_type'] = \
+                            [t.id for t in obj.allowedContentTypes()]
+            
+                total = create_subobjects(root, obj, data, total)
     return total
 
 
@@ -78,7 +100,7 @@ def create_object(context, portal_type, data):
     title = StripMarkup(response.decode('utf-8')).split('.')[1]
     id = INameChooser(context).chooseName(title, context)
     myfile = None
-    if portal_type == 'Image':
+    if portal_type in ['Image', 'File']:
         myfile = StringIO(decodestring('R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
         myfile.filename = '.'.join((get_text_line().split(' ')[-1], 'gif'))
         args = dict(id=id, file=myfile)
@@ -111,35 +133,21 @@ def create_object(context, portal_type, data):
     log.info('%s Object created' % obj.portal_type)
     return obj
 
-
 def get_text_line():
-    url = BASE_URL + '/1/short'
-    try:
-        response = urllib.urlopen(url).read()
-    except IOError, e:
-        response = str(e)
-    return StripMarkup(response.decode('utf-8')).split('.')[1]
-
+    return loremipsum.Generator().generate_sentence()[2]
 
 def get_text_paragraph():
-    url =  BASE_URL + '/1/short'
-    try:
-        response = urllib.urlopen(url).read()
-    except IOError, e:
-        response = str(e)
-    return StripMarkup(response.decode('utf-8'))
-
+    return [p[2] for p in loremipsum.Generator().generate_paragraphs(1)][0]
 
 def get_rich_text(data):
     url =  BASE_URL + '/3/short'
     for key, default in OPTIONS.items():
-        if data.get(key):
+        if key in data.get('formatting', []):
             url += '/%s' % key
     return urllib.urlopen(url).read().decode('utf-8')
 
-
 def populate_dexterity_type(obj, data):
-    view = getMultiAdapter((obj, obj.request), name="edit")
+    view = getMultiAdapter((obj, obj.REQUEST), name="edit")
     view.update()
     view.form_instance.render()
     fields = view.form_instance.fields._data_values

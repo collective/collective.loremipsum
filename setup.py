@@ -25,6 +25,7 @@ setup(name='collective.loremipsum',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'loremipsum',
           'Products.CMFPlone',
           'htmllaundry',
       ],
