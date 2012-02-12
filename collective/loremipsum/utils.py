@@ -4,7 +4,6 @@ import loremipsum
 import random
 import time
 import urllib
-from htmllaundry import StripMarkup
 from StringIO import StringIO
 from base64 import decodestring
 
@@ -95,9 +94,7 @@ def create_subobjects(root, context, data, total=0):
 
 def create_object(context, portal_type, data):
     """ """
-    url = BASE_URL + '/1/short'
-    response = urllib.urlopen(url).read()
-    title = StripMarkup(response.decode('utf-8')).split('.')[1]
+    title = get_text_line()
     id = INameChooser(context).chooseName(title, context)
     myfile = None
     if portal_type in ['Image', 'File']:

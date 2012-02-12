@@ -27,7 +27,6 @@ setup(name='collective.loremipsum',
           'setuptools',
           'loremipsum',
           'Products.CMFPlone',
-          'htmllaundry',
       ],
       entry_points="""
       [z3c.autoinclude.plugin]
