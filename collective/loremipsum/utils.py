@@ -102,7 +102,8 @@ def create_object(context, portal_type, data):
     myfile = None
     if portal_type in ['Image', 'File']:
         myfile = StringIO(decodestring('R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
-        myfile.filename = '.'.join((get_text_line().split(' ')[-1], 'gif'))
+        ext =  portal_type == 'Image' and 'gif' or 'dat'
+        myfile.filename = '.'.join((get_text_line().split(' ')[-1], ext))
         args = dict(id=id, file=myfile)
     else:
         args = dict(id=id)
@@ -110,6 +111,7 @@ def create_object(context, portal_type, data):
         id = context.invokeFactory(portal_type, **args)
     except BadRequest:
         id += '%f' % time.time()
+        args[id] = id
         id = context.invokeFactory(portal_type, **args)
         
     obj = context[id]
