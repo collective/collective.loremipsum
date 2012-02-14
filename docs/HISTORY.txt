@@ -1,10 +1,11 @@
 Changelog
 =========
 
-0.2 (unreleased)
+0.2 (2012-02-14)
 ----------------
 
-- Nothing changed yet.
+- Bugfix. README.rst was omitted from the egg. 
+  [jcbrand]
 
 
 0.1 (2012-02-12)
