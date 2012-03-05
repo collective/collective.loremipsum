@@ -94,6 +94,8 @@ def create_subobjects(root, context, data, total=0):
 
 def create_object(context, portal_type, data):
     """ """
+    # FIXME: The NameChooser actually needs to new object to already exist,
+    # otheriwse it doesn't return unique Ids.
     title = get_text_line()
     id = INameChooser(context).chooseName(title, context)
     myfile = None
