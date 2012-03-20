@@ -24,6 +24,7 @@ setup(name='collective.loremipsum',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+          'plone.dexterity',
           'setuptools',
           'loremipsum',
           'Products.CMFPlone',
