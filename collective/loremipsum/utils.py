@@ -92,28 +92,42 @@ def create_subobjects(root, context, data, total=0):
     return total
 
 
+def generate_unique_id(container, name, portal_type):
+    name = name.lstrip('+@') or portal_type
+    name = name.replace(' ', '-').replace('/', '-').lower()
+    # for an existing name, append a number.
+    # We should keep client's os.path.extsep (not ours), we assume it's '.'
+    dot = name.rfind('.')
+    if dot >= 0:
+        suffix = name[dot:]
+        name = name[:dot]
+    else:
+        suffix = ''
+
+    n = name + suffix
+    i = 1
+    while n in container:
+        i += 1
+        n = name + '-' + str(i) + suffix
+    # Make sure the name is valid.  We may have started with something bad.
+    INameChooser(container).checkName(n, None)
+    return n
+
+
 def create_object(context, portal_type, data):
     """ """
-    # FIXME: The NameChooser actually needs to new object to already exist,
-    # otheriwse it doesn't return unique Ids.
     title = get_text_line()
-    id = INameChooser(context).chooseName(title, context)
-    myfile = None
+    unique_id = generate_unique_id(context, title, portal_type)
+
+    args = dict(id=unique_id)
     if portal_type in ['Image', 'File']:
         myfile = StringIO(decodestring('R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
         ext =  portal_type == 'Image' and 'gif' or 'dat'
         myfile.filename = '.'.join((get_text_line().split(' ')[-1], ext))
-        args = dict(id=id, file=myfile)
-    else:
-        args = dict(id=id)
-    try:
-        id = context.invokeFactory(portal_type, **args)
-    except BadRequest:
-        id += '%f' % time.time()
-        args[id] = id
-        id = context.invokeFactory(portal_type, **args)
-        
-    obj = context[id]
+        args.update({'file':myfile})
+
+    new_id= context.invokeFactory(portal_type, **args)
+    obj = context[new_id]
 
     if IDexterityContent.providedBy(obj):
         if shasattr(obj, 'title'):
