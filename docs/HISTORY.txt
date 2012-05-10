@@ -4,17 +4,16 @@ Changelog
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add a unique Id generator. [jcbrand] 
 
 
 0.2 (2012-02-14)
 ----------------
 
-- Bugfix. README.rst was omitted from the egg. 
-  [jcbrand]
+- Bugfix. README.rst was omitted from the egg. [jcbrand]
 
 
 0.1 (2012-02-12)
 ----------------
 
-- Initial release
+- Initial release. [jcbrand]
