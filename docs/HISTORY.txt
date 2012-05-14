@@ -4,7 +4,7 @@ Changelog
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Update MANIFEST.in to include zcml and other non-python files. [jcbrand]
 
 
 0.3 (2012-05-10)

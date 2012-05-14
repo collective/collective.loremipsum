@@ -1,2 +1,7 @@
 include *.rst
 graft docs
+graft collective/loremipsum/dummydata
+graft collective/loremipsum/profiles
+recursive-include collective/loremipsum *.zcml
+recursive-include collective/loremipsum *.po
+recursive-include collective/loremipsum *.mo
