@@ -73,6 +73,16 @@ class IPopulateFormSchema(interface.Interface):
     publish = schema.Bool(
             title=_(u"Publish objects"),
             description=_(u"Should newly created objects be published?"),
+            required=False,
+            )
+    
+    commit = schema.Bool(
+            title=_(u"Commit between objects"),
+            description=_(u"Check this box if the transaction should be "
+                u"committed each time an object is created. This will take more "
+                u"time but might be necessary, for example if you have default "
+                u"values that depend on previous objects being catalogued."),
+            required=False,
             )
 
     formatting = schema.List(

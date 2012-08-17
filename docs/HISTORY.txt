@@ -4,7 +4,9 @@ Changelog
 0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Enable option to commit after each object is created. [jcbrand]
+- Take note of max_length on text fields. [jcbrand]
+- Use default values for fields if they exist. [jcbrand]
 
 
 0.4 (2012-05-14)
