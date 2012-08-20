@@ -42,6 +42,13 @@ from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
 from Products.CMFCore.WorkflowCore import WorkflowException
 
+try:
+    HAS_USERANDGROUPSELECTIONWIDGET = True
+    from Products.UserAndGroupSelectionWidget.z3cform.interfaces import \
+                                                IUserAndGroupSelectionWidget
+except:
+    HAS_USERANDGROUPSELECTIONWIDGET = False
+    
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL, OPTIONS
 
@@ -223,9 +230,18 @@ def get_dummy_dexterity_value(obj, widget, data):
             index  = random.randint(0, len(vocabulary)-1)
             value = vocabulary._terms[index].value
 
+    elif interfaces.IBool.providedBy(field):
+        value = random.randint(0,1) and True or False
+
     elif interfaces.ITextLine.providedBy(field):
-        length = getattr(field, 'max_length', None) 
-        value = unicode(get_text_line()[:length])
+        if HAS_USERANDGROUPSELECTIONWIDGET and \
+                IUserAndGroupSelectionWidget.providedBy(widget):
+            mtool = getToolByName(obj, 'portal_membership')
+            mids = mtool.listMemberIds()
+            value = mids[random.randint(0, len(mids)-1)]
+        else:
+            length = getattr(field, 'max_length', None) 
+            value = unicode(get_text_line()[:length])
 
     elif interfaces.IText.providedBy(field):
         if IWysiwygWidget.providedBy(widget):
@@ -255,7 +271,7 @@ def populate_dexterity_type(obj, data):
                 widget = widgetclass(field, request)
             else:
                 widget = component.getMultiAdapter((field, request), IFieldWidget)
-        
+
             widget.context = obj
             widget.ignoreRequest = True
             widget.update()
