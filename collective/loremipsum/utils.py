@@ -330,5 +330,3 @@ def populate_archetype(obj, data):
         value = DateTime() + days
         obj.setStartDate(value)
         obj.setEndDate(value+random.random()*3)
-
-
