@@ -14,8 +14,8 @@ The user data for the dummy members were downloaded from
 
 * You can also register 500 dummy users, but for the moment only by calling the browserview: **@@create-dummy-users**
 
+Feedback and suggestions are welcome: <jc@opkode.com>
+
 .. _loremipsum: http://code.google.com/p/lorem-ipsum-generator/
 .. _loripsum.net: http//loripsum.net
 .. _fakenamegenerator.com: http://www.fakenamegenerator.com
-
-Feedback and suggestions are welcome: <jc@opkode.com>
