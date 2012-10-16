@@ -24,10 +24,11 @@ setup(name='collective.loremipsum',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'plone.dexterity',
           'setuptools',
           'loremipsum',
           'Products.CMFPlone',
+          'plone.dexterity',
+          'plone.namedfile',
       ],
       entry_points="""
       [z3c.autoinclude.plugin]
