@@ -77,6 +77,14 @@ class IPopulateFormSchema(interface.Interface):
             default=True,
             )
 
+    generate_images = schema.Bool(
+            title=_(u"Generate fake images' content?"),
+            description=_(u"Check this box to get random fake images from http://fakeimg.pl "
+                    u"for all the items with a field named 'image'."),
+            default=False,
+            required=False,
+            )
+
     publish = schema.Bool(
             title=_(u"Publish objects"),
             description=_(u"Should newly created objects be published?"),

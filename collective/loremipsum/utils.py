@@ -6,6 +6,7 @@ import transaction
 import urllib
 from StringIO import StringIO
 from base64 import decodestring
+from PIL import Image
 
 from zope import component
 from zope.globalrequest import getRequest
@@ -35,8 +36,8 @@ from DateTime import DateTime
 from Products.CMFCore.utils import getToolByName
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
-from Products.Archetypes.interfaces import field  as atfield
-from Products.Archetypes.interfaces.base import IBaseContent 
+from Products.Archetypes.interfaces import field as atfield
+from Products.Archetypes.interfaces.base import IBaseContent
 from Products.Archetypes.interfaces.vocabulary import IVocabulary
 from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
@@ -48,11 +49,15 @@ try:
                                                 IUserAndGroupSelectionWidget
 except:
     HAS_USERANDGROUPSELECTIONWIDGET = False
-    
+
 from collective.loremipsum import MessageFactory as _
-from collective.loremipsum.config import BASE_URL, OPTIONS
+from collective.loremipsum.config import BASE_URL
+from collective.loremipsum.config import OPTIONS
+from collective.loremipsum.config import DUMMY_IMAGE_GENERATOR_URL
+
 
 log = logging.getLogger(__name__)
+
 
 def create_subobjects(root, context, data, total=0):
     amount = int(data.get('amount', 3))
@@ -155,6 +160,13 @@ def create_object(context, portal_type, data):
     else:
         obj.setTitle(title)
         populate_archetype(obj, data)
+
+    if obj.getField('image') and data.get('generate_images'):
+        field = obj.getField('image')
+        img_content = get_dummy_image(title)
+        if img_content:
+            field.set(obj, img_content)
+            log.info('got dummy image for %s' % '/'.join(obj.getPhysicalPath()))
 
     if data.get('publish', True):
         wftool = getToolByName(context, 'portal_workflow')
@@ -333,3 +345,15 @@ def populate_archetype(obj, data):
         value = DateTime() + days
         obj.setStartDate(value)
         obj.setEndDate(value+random.random()*3)
+
+
+def get_dummy_image(title):
+    size = '300x200'
+    url = DUMMY_IMAGE_GENERATOR_URL % {'size': size, 'text': title[:40]}
+    content = urllib.urlopen(url).read()
+    # check if we got a real content and not some html error page
+    try:
+        Image.open(StringIO(content))
+    except IOError:
+        return None
+    return content
