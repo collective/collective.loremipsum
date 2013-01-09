@@ -99,13 +99,14 @@ def create_subobjects(root, context, data, total=0):
                 continue
 
             if recurse:
-                if shasattr(obj, 'getLocallyAllowedTypes'):
-                    data['portal_type'] = \
-                            list(obj.getLocallyAllowedTypes())
-                elif shasattr(obj, 'allowedContentTypes'):
-                    data['portal_type'] = \
-                            [t.id for t in obj.allowedContentTypes()]
-            
+                if not data.get('recurse_same_ptypes', False):
+                    if shasattr(obj, 'getLocallyAllowedTypes'):
+                        data['portal_type'] = \
+                                list(obj.getLocallyAllowedTypes())
+                    elif shasattr(obj, 'allowedContentTypes'):
+                        data['portal_type'] = \
+                                [t.id for t in obj.allowedContentTypes()]
+
                 total = create_subobjects(root, obj, data, total)
     return total
 

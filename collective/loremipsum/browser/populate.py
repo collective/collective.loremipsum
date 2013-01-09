@@ -70,12 +70,19 @@ class IPopulateFormSchema(interface.Interface):
             default=3,
             )
 
+    recurse_same_ptypes = schema.Bool(
+            title=_(u"Use the same portal types selected above?"),
+            description=_(u'description_recurse',
+                    default=u"Generate sub-objects using only content types declared into 'Item Type'."),
+            default=True,
+            )
+
     publish = schema.Bool(
             title=_(u"Publish objects"),
             description=_(u"Should newly created objects be published?"),
             required=False,
             )
-    
+
     commit = schema.Bool(
             title=_(u"Commit between objects"),
             description=_(u"Check this box if the transaction should be "
