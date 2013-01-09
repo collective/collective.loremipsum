@@ -5,6 +5,7 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="collective.loremipsum">
 
+    <include file="permissions.zcml" />
     <include package=".browser" />
     <five:registerPackage package="." initialize=".initialize" />
 
@@ -15,6 +16,5 @@
         description="Installs the collective.loremipsum package"
         provides="Products.GenericSetup.interfaces.EXTENSION"
         />
-
   
 </configure>

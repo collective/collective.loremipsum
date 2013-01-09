@@ -1,0 +1,10 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="collective.loremipsum">
+
+    <permission
+        id="collective.loremipsum.canPopulate"
+        title="collective.loremipsum: Can Populate"
+        />
+
+</configure>

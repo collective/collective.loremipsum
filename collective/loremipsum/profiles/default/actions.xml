@@ -10,7 +10,7 @@
    <property name="icon_expr"></property>
    <property name="available_expr">object/displayContentsTab</property>
    <property name="permissions">
-    <element value="Add portal content"/>
+    <element value="collective.loremipsum: Can Populate"/>
    </property>
    <property name="visible">True</property>
   </object>

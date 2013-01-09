@@ -10,7 +10,7 @@
         name="populate"
         class=".populate.Populate"
         layer="collective.loremipsum.interfaces.IProductLayer"
-        permission="cmf.AddPortalContent"
+        permission="collective.loremipsum.canPopulate"
         />
 
     <browser:page
@@ -18,7 +18,7 @@
         name="create-dummy-data"
         class=".views.CreateDummyData"
         layer="collective.loremipsum.interfaces.IProductLayer"
-        permission="cmf.AddPortalContent"
+        permission="collective.loremipsum.canPopulate"
         />
         
     <browser:page
@@ -26,7 +26,7 @@
         name="create-dummy-users"
         class=".views.RegisterDummyUsers"
         layer="collective.loremipsum.interfaces.IProductLayer"
-        permission="cmf.AddPortalContent"
+        permission="collective.loremipsum.canPopulate"
         />
 
 </configure>
