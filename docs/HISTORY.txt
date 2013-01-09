@@ -5,8 +5,8 @@ Changelog
 ----------------
 
 - Use the same language of the parent for subobjects (LinguaPlone happy) [simahawk]
-- Add option for re-using the same content types selected for generating subobjects
-
+- Add option for re-using the same content types selected for generating subobjects [simahawk]
+- Add option for generating images from http://fakeimg.pl/ [simahawk]
 
 0.6 (2012-08-30)
 ----------------
