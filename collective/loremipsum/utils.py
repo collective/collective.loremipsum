@@ -162,6 +162,8 @@ def create_object(context, portal_type, data):
         except WorkflowException, e:
             log.warn(e)
 
+    # set same language as parent
+    obj.setLanguage(context.Language())
     obj.reindexObject()
     log.info('%s Object created' % obj.portal_type)
     if data.get('commit'):
