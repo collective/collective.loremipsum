@@ -16,6 +16,8 @@ from Products.Archetypes.utils import shasattr
 
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.utils import create_subobjects
+from collective.loremipsum.fakeimagegetter import DEFAULT_IMAGE_GETTER
+
 
 log = logging.getLogger(__name__)
 
@@ -79,9 +81,26 @@ class IPopulateFormSchema(interface.Interface):
 
     generate_images = schema.Bool(
             title=_(u"Generate fake images' content?"),
-            description=_(u"Check this box to get random fake images from http://fakeimg.pl "
+            description=_(u"Check this box to get random fake images "
                     u"for all the items with a field named 'image'."),
             default=False,
+            required=False,
+            )
+
+    generate_images_service = schema.Choice(
+            title=_(u"Image service"),
+            description=_(u"Choose which service to use to generate images"),
+            vocabulary="collective.loremipsum.fakeimagegetters",
+            default=DEFAULT_IMAGE_GETTER,
+            required=False,
+            )
+
+    generate_images_params = schema.TextLine(
+            title=_(u"Image parameters"),
+            description=_(u"Column ';' separated parameters for the image service. "
+                          u"Check respective websites for available parameters. "
+                          u"Default 'text' is the title of the generated object."),
+            default=u"size=300x200;",
             required=False,
             )
 
@@ -132,19 +151,19 @@ class PopulateForm(ExtensibleForm, form.Form):
         elif shasattr(context, 'allowedContentTypes'):
             self.fields['portal_type'].field.default = \
                                 [t.id for t in context.allowedContentTypes()]
-            
+
     @button.handler(IPopulateFormButtons['create'])
     def create(self, action):
         data, errors = self.extractData()
         if errors:
             self.status = '\n'.join([error.error.__str__() for error in errors])
-            return 
+            return
 
         context = aq_inner(self.context)
         total = create_subobjects(context, context, data, 0)
         addStatusMessage(
                 self.request, 
-                'Successfully created %d dummy objects.' % total, 
+                'Successfully created %d dummy objects.' % total,
                 type='info')
         self.request.response.redirect(self.context.REQUEST.get('URL'))
 
@@ -152,4 +171,3 @@ class PopulateForm(ExtensibleForm, form.Form):
 class Populate(FormWrapper):
     """ """
     form = PopulateForm
-

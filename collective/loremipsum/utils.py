@@ -53,7 +53,8 @@ except:
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL
 from collective.loremipsum.config import OPTIONS
-from collective.loremipsum.config import DUMMY_IMAGE_GENERATOR_URL
+from collective.loremipsum.fakeimagegetter import IFakeImageGetter
+from collective.loremipsum.fakeimagegetter import DEFAULT_IMAGE_GETTER
 
 
 log = logging.getLogger(__name__)
@@ -163,10 +164,15 @@ def create_object(context, portal_type, data):
 
     if obj.getField('image') and data.get('generate_images'):
         field = obj.getField('image')
-        img_content = get_dummy_image(title)
+        name = data.get('generate_images_service')
+        params = data.get('generate_images_params')
+        getter = component.getUtility(IFakeImageGetter, name=name)
+        img_content = getter.get(params=params, text=title)
         if img_content:
             field.set(obj, img_content)
-            log.info('got dummy image for %s' % '/'.join(obj.getPhysicalPath()))
+            log.info('[%s] got dummy image for %s' % (getter.name,
+                                                      '/'.join(obj.getPhysicalPath()))
+            )
 
     if data.get('publish', True):
         wftool = getToolByName(context, 'portal_workflow')
@@ -345,15 +351,3 @@ def populate_archetype(obj, data):
         value = DateTime() + days
         obj.setStartDate(value)
         obj.setEndDate(value+random.random()*3)
-
-
-def get_dummy_image(title):
-    size = '300x200'
-    url = DUMMY_IMAGE_GENERATOR_URL % {'size': size, 'text': title[:40]}
-    content = urllib.urlopen(url).read()
-    # check if we got a real content and not some html error page
-    try:
-        Image.open(StringIO(content))
-    except IOError:
-        return None
-    return content
