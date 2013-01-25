@@ -2,7 +2,7 @@ import csv
 import os
 import logging
 
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 
 from Acquisition import aq_inner
 
