@@ -54,7 +54,6 @@ from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL
 from collective.loremipsum.config import OPTIONS
 from collective.loremipsum.fakeimagegetter import IFakeImageGetter
-from collective.loremipsum.fakeimagegetter import DEFAULT_IMAGE_GETTER
 
 
 log = logging.getLogger(__name__)
@@ -173,6 +172,12 @@ def create_object(context, portal_type, data):
             log.info('[%s] got dummy image for %s' % (getter.name,
                                                       '/'.join(obj.getPhysicalPath()))
             )
+    # subject
+    subject = obj.getField('subject')
+    if subject:
+        subjects = data.get('subjects', '').splitlines() or get_subjects()
+        random.shuffle(subjects)
+        subject.set(obj, subjects[:4])
 
     if data.get('publish', True):
         wftool = getToolByName(context, 'portal_workflow')
@@ -189,11 +194,14 @@ def create_object(context, portal_type, data):
         transaction.commit()
     return obj
 
+
 def get_text_line():
     return loremipsum.Generator().generate_sentence()[2]
 
+
 def get_text_paragraph():
     return [p[2] for p in loremipsum.Generator().generate_paragraphs(1)][0]
+
 
 def get_rich_text(data):
     url =  BASE_URL + '/3/short'
@@ -201,6 +209,16 @@ def get_rich_text(data):
         if key in data.get('formatting', []):
             url += '/%s' % key
     return urllib.urlopen(url).read().decode('utf-8')
+
+
+def get_subjects():
+    subjects_sets = loremipsum.Generator().dictionary
+    # keys are the lenght of the contained words
+    # let's skip the shortest ones
+    set_key = random.choice(subjects_sets.keys()[5:])
+    subjects = list(subjects_sets[set_key])
+    return subjects
+
 
 def get_dexterity_schemas(context=None, portal_type=None):
     """ Utility method to get all schemas for a dexterity object.

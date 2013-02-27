@@ -34,6 +34,7 @@ formatting_vocabulary = schema.vocabulary.SimpleVocabulary.fromItems([
         ("Add bold, italic and marked text", 'decorate'),
     ])
 
+
 class IPopulateFormSchema(interface.Interface):
     """ """
     portal_type = schema.List(
@@ -100,7 +101,13 @@ class IPopulateFormSchema(interface.Interface):
             description=_(u"Column ';' separated parameters for the image service. "
                           u"Check respective websites for available parameters. "
                           u"Default 'text' is the title of the generated object."),
-            default=u"size=300x200;",
+            default=u"size=300x200; category=sports;",
+            required=False,
+            )
+
+    subjects = schema.Text(
+            title=_(u"Subjects"),
+            description=_(u"Line separated subjects. If none provided a default set will be used."),
             required=False,
             )
 

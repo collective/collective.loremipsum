@@ -110,4 +110,4 @@ placehold = PlaceHold()
 placekitten = PlaceKitten()
 lorempixel = LoremPixel()
 
-DEFAULT_IMAGE_GETTER = 'fakeimg.pl'
+DEFAULT_IMAGE_GETTER = 'lorempixel.com'
