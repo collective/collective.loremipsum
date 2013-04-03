@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.7 (unreleased)
+0.7 (2013-04-03)
 ----------------
 
 - Use the same language of the parent for subobjects (LinguaPlone happy) [simahawk]
