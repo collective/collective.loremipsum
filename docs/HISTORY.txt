@@ -4,7 +4,7 @@ Changelog
 0.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Work around an issue that prevented recursive population on the site-root. [pbauer]
 
 
 0.7 (2013-04-03)
@@ -39,7 +39,7 @@ Changelog
 0.3 (2012-05-10)
 ----------------
 
-- Add a unique Id generator. [jcbrand] 
+- Add a unique Id generator. [jcbrand]
 
 
 0.2 (2012-02-14)
