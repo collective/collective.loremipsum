@@ -33,7 +33,7 @@ from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
 from DateTime import DateTime
 
-from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces import field as atfield
@@ -42,6 +42,7 @@ from Products.Archetypes.interfaces.vocabulary import IVocabulary
 from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
 from Products.CMFCore.WorkflowCore import WorkflowException
+from Products.CMFCore.utils import getToolByName
 
 try:
     HAS_USERANDGROUPSELECTIONWIDGET = True
@@ -88,9 +89,14 @@ def create_subobjects(root, context, data, total=0):
     if data.get('recurse', None) not in [None, '0', 'False', False]:
         depth = 0
         node = context
-        while IUUID(node) != IUUID(root):
-            depth += 1
-            node = node.aq_parent
+        if not IPloneSiteRoot.providedBy(root):
+            while IUUID(node) != IUUID(root):
+                depth += 1
+                node = node.aq_parent
+        else:
+            while not IPloneSiteRoot.providedBy(node):
+                depth += 1
+                node = node.aq_parent
 
         if depth < data.get('recursion_depth'):
             recurse = True
@@ -223,9 +229,9 @@ def get_subjects():
 
 def get_dexterity_schemas(context=None, portal_type=None):
     """ Utility method to get all schemas for a dexterity object.
-        
+
         IMPORTANT: Either context or portal_type must be passed in, NOT BOTH.
-        The idea is that for edit forms context is passed in and for add forms 
+        The idea is that for edit forms context is passed in and for add forms
         where we don't have a valid context we pass in portal_type.
 
         This builds on getAdditionalSchemata, which works the same way.
@@ -251,17 +257,17 @@ def get_dummy_dexterity_value(obj, widget, data):
             vocabulary = field.vocabulary
         elif shasattr(field, 'vocabularyName') and field.vocabularyName:
             factory = component.getUtility(
-                            interfaces.IVocabularyFactory, 
+                            interfaces.IVocabularyFactory,
                             field.vocabularyName)
             vocabulary = factory(obj)
         else:
-            return 
+            return
 
         if interfaces.IContextSourceBinder.providedBy(vocabulary):
             criteria = vocabulary.selectable_filter.criteria
             results = catalog(**criteria)
             if not len(results):
-                return 
+                return
             value = results[random.randint(0, len(results)-1)].getObject()
         else:
             if interfaces.ITreeVocabulary.providedBy(vocabulary):
@@ -280,7 +286,7 @@ def get_dummy_dexterity_value(obj, widget, data):
             mids = mtool.listMemberIds()
             value = mids[random.randint(0, len(mids)-1)]
         else:
-            length = getattr(field, 'max_length', None) 
+            length = getattr(field, 'max_length', None)
             value = unicode(get_text_line()[:length])
 
     elif interfaces.IText.providedBy(field):
@@ -341,7 +347,7 @@ def populate_archetype(obj, data):
         if shasattr(field, 'vocabulary') and IVocabulary.providedBy(field.vocabulary):
             vocab = field.vocabulary.getVocabularyDict(obj)
             value = vocab.keys()[random.randint(0, len(vocab.keys())-1)]
-            
+
         elif atfield.IStringField.providedBy(field):
             validators = [v[0].name for v in field.validators]
             if 'isURL' in validators:
@@ -354,9 +360,9 @@ def populate_archetype(obj, data):
         elif atfield.ITextField.providedBy(field):
             widget = field.widget
             if isinstance(widget, RichWidget):
-                value = get_rich_text(data) 
+                value = get_rich_text(data)
             else:
-                value = get_text_paragraph() 
+                value = get_text_paragraph()
 
         elif atfield.IBooleanField.providedBy(field):
             value = random.randint(0,1) and True or False

@@ -1,7 +1,19 @@
 Changelog
 =========
 
-0.7 (unreleased)
+0.9 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
+0.8 (2013-04-22)
+----------------
+
+- Work around an issue that prevented recursive population on the site-root. [pbauer]
+
+
+0.7 (2013-04-03)
 ----------------
 
 - Use the same language of the parent for subobjects (LinguaPlone happy) [simahawk]
@@ -33,7 +45,7 @@ Changelog
 0.3 (2012-05-10)
 ----------------
 
-- Add a unique Id generator. [jcbrand] 
+- Add a unique Id generator. [jcbrand]
 
 
 0.2 (2012-02-14)
