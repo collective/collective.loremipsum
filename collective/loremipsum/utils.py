@@ -161,7 +161,9 @@ def create_object(context, portal_type, data):
         obj.setTitle(title)
         populate_archetype(obj, data)
 
-    if obj.getField('image') and data.get('generate_images'):
+    generate_image = data.get('generate_images') or obj.portal_type == 'Image'
+
+    if obj.getField('image') and generate_image:
         field = obj.getField('image')
         name = data.get('generate_images_service')
         params = data.get('generate_images_params')
@@ -170,11 +172,10 @@ def create_object(context, portal_type, data):
         if img_content:
             field.set(obj, img_content)
             log.info('[%s] got dummy image for %s' % (getter.name,
-                                                      '/'.join(obj.getPhysicalPath()))
-            )
+                                                      '/'.join(obj.getPhysicalPath())))
     # subject
     subject = obj.getField('subject')
-    if subject:
+    if subject and data.get('subjects'):
         subjects = data.get('subjects', '').splitlines() or get_subjects()
         random.shuffle(subjects)
         subject.set(obj, subjects[:4])
