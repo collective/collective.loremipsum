@@ -2,6 +2,7 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="collective.loremipsum">
 
@@ -16,5 +17,39 @@
         description="Installs the collective.loremipsum package"
         provides="Products.GenericSetup.interfaces.EXTENSION"
         />
-  
+
+    <utility
+        name="fakeimg.pl"
+        component=".fakeimagegetter.fakeimgpl"
+        />
+
+    <utility
+        name="placehold.it"
+        component=".fakeimagegetter.placehold"
+        />
+
+    <utility
+        name="placekitten.com"
+        component=".fakeimagegetter.placekitten"
+        />
+
+    <utility
+        name="lorempixel.com"
+        component=".fakeimagegetter.lorempixel"
+        />
+    
+    <utility
+        zcml:condition="not-installed plone.app.upgrade"
+        name="collective.loremipsum.fakeimagegetters"
+        factory=".vocabularies.FakeImageGetters"
+        provides="zope.app.schema.vocabulary.IVocabularyFactory"
+        />
+    
+    <utility
+        zcml:condition="installed plone.app.upgrade"
+        name="collective.loremipsum.fakeimagegetters"
+        factory=".vocabularies.FakeImageGetters"
+        provides="zope.schema.interfaces.IVocabularyFactory"
+        />
+
 </configure>

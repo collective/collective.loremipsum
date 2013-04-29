@@ -10,5 +10,3 @@ OPTIONS = { 'decorate': True,
             'headers': True, 
             'allcaps': False 
             }
-
-DUMMY_IMAGE_GENERATOR_URL = 'http://fakeimg.pl/%(size)s/?text=%(text)s&font=Arial'

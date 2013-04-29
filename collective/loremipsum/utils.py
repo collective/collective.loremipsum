@@ -54,7 +54,7 @@ except:
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL
 from collective.loremipsum.config import OPTIONS
-from collective.loremipsum.config import DUMMY_IMAGE_GENERATOR_URL
+from collective.loremipsum.fakeimagegetter import IFakeImageGetter
 
 
 log = logging.getLogger(__name__)
@@ -167,12 +167,24 @@ def create_object(context, portal_type, data):
         obj.setTitle(title)
         populate_archetype(obj, data)
 
-    if obj.getField('image') and data.get('generate_images'):
+    generate_image = data.get('generate_images') or obj.portal_type == 'Image'
+
+    if obj.getField('image') and generate_image:
         field = obj.getField('image')
-        img_content = get_dummy_image(title)
+        name = data.get('generate_images_service')
+        params = data.get('generate_images_params')
+        getter = component.getUtility(IFakeImageGetter, name=name)
+        img_content = getter.get(params=params, text=title)
         if img_content:
             field.set(obj, img_content)
-            log.info('got dummy image for %s' % '/'.join(obj.getPhysicalPath()))
+            log.info('[%s] got dummy image for %s' % (getter.name,
+                                                      '/'.join(obj.getPhysicalPath())))
+    # subject
+    subject = obj.getField('subject')
+    if subject and data.get('subjects'):
+        subjects = data.get('subjects', '').splitlines() or get_subjects()
+        random.shuffle(subjects)
+        subject.set(obj, subjects[:4])
 
     if data.get('publish', True):
         wftool = getToolByName(context, 'portal_workflow')
@@ -189,11 +201,14 @@ def create_object(context, portal_type, data):
         transaction.commit()
     return obj
 
+
 def get_text_line():
     return loremipsum.Generator().generate_sentence()[2]
 
+
 def get_text_paragraph():
     return [p[2] for p in loremipsum.Generator().generate_paragraphs(1)][0]
+
 
 def get_rich_text(data):
     url =  BASE_URL + '/3/short'
@@ -201,6 +216,16 @@ def get_rich_text(data):
         if key in data.get('formatting', []):
             url += '/%s' % key
     return urllib.urlopen(url).read().decode('utf-8')
+
+
+def get_subjects():
+    subjects_sets = loremipsum.Generator().dictionary
+    # keys are the lenght of the contained words
+    # let's skip the shortest ones
+    set_key = random.choice(subjects_sets.keys()[5:])
+    subjects = list(subjects_sets[set_key])
+    return subjects
+
 
 def get_dexterity_schemas(context=None, portal_type=None):
     """ Utility method to get all schemas for a dexterity object.
@@ -351,15 +376,3 @@ def populate_archetype(obj, data):
         value = DateTime() + days
         obj.setStartDate(value)
         obj.setEndDate(value+random.random()*3)
-
-
-def get_dummy_image(title):
-    size = '300x200'
-    url = DUMMY_IMAGE_GENERATOR_URL % {'size': size, 'text': title[:40]}
-    content = urllib.urlopen(url).read()
-    # check if we got a real content and not some html error page
-    try:
-        Image.open(StringIO(content))
-    except IOError:
-        return None
-    return content
