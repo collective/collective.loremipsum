@@ -1,39 +1,6 @@
-import datetime
-import logging
-import loremipsum
-import random
-import transaction
-import urllib
-from StringIO import StringIO
-from base64 import decodestring
-from PIL import Image
-
-from zope import component
-from zope.globalrequest import getRequest
-from zope.container.interfaces import INameChooser
-from zope.schema import getFieldNames
-from zope.schema import interfaces
-from zope.schema.interfaces import WrongType
-
-from z3c.form.interfaces import IDataConverter
-from z3c.form.interfaces import IDataManager
-from z3c.form.interfaces import IFieldWidget
-from z3c.form.interfaces import NOT_CHANGED
-from z3c.form.interfaces import NO_VALUE
-
-from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
-
-from plone.autoform.interfaces import WIDGETS_KEY
-from plone.dexterity import utils
-from plone.dexterity.interfaces import IDexterityContent
-from plone.dexterity.interfaces import IDexterityFTI
-from plone.uuid.interfaces import IUUID
-
 from Acquisition import aq_base
-from OFS.interfaces import IObjectManager
 from DateTime import DateTime
-
-from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
+from OFS.interfaces import IObjectManager
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces import field as atfield
@@ -43,19 +10,42 @@ from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
 from Products.CMFCore.WorkflowCore import WorkflowException
 from Products.CMFCore.utils import getToolByName
-
-try:
-    HAS_USERANDGROUPSELECTIONWIDGET = True
-    from Products.UserAndGroupSelectionWidget.z3cform.interfaces import \
-                                                IUserAndGroupSelectionWidget
-except:
-    HAS_USERANDGROUPSELECTIONWIDGET = False
-
+from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
+from StringIO import StringIO
+from base64 import decodestring
 from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL
 from collective.loremipsum.config import OPTIONS
 from collective.loremipsum.fakeimagegetter import IFakeImageGetter
-
+from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
+from plone.autoform.interfaces import WIDGETS_KEY
+from plone.dexterity import utils
+from plone.dexterity.interfaces import IDexterityContent
+from plone.dexterity.interfaces import IDexterityFTI
+from plone.uuid.interfaces import IUUID
+from z3c.form.interfaces import IDataConverter
+from z3c.form.interfaces import IDataManager
+from z3c.form.interfaces import IFieldWidget
+from z3c.form.interfaces import NOT_CHANGED
+from z3c.form.interfaces import NO_VALUE
+from zope import component
+from zope.container.interfaces import INameChooser
+from zope.globalrequest import getRequest
+from zope.schema import getFieldNames
+from zope.schema import interfaces
+from zope.schema.interfaces import WrongType
+import datetime
+import logging
+import loremipsum
+import random
+import transaction
+import urllib
+try:
+    HAS_USERANDGROUPSELECTIONWIDGET = True
+    from Products.UserAndGroupSelectionWidget.z3cform.interfaces import \
+        IUserAndGroupSelectionWidget
+except:
+    HAS_USERANDGROUPSELECTIONWIDGET = False
 
 log = logging.getLogger(__name__)
 
@@ -73,8 +63,8 @@ def create_subobjects(root, context, data, total=0):
             fti = component.getUtility(IDexterityFTI, name=context.portal_type)
             types = fti.filter_content_types and fti.allowed_content_types
             if not types:
-                msg = _('Either restrict the addable types in this folder or ' \
-                        'provide a type argument.')
+                msg = _('Either restrict the addable types in this folder ' \
+                        'or provide a type argument.')
                 addStatusMessage(context.request, msg)
                 return total
         else:
@@ -113,10 +103,10 @@ def create_subobjects(root, context, data, total=0):
                 if not data.get('recurse_same_ptypes', False):
                     if shasattr(obj, 'getLocallyAllowedTypes'):
                         data['portal_type'] = \
-                                list(obj.getLocallyAllowedTypes())
+                            list(obj.getLocallyAllowedTypes())
                     elif shasattr(obj, 'allowedContentTypes'):
                         data['portal_type'] = \
-                                [t.id for t in obj.allowedContentTypes()]
+                            [t.id for t in obj.allowedContentTypes()]
 
                 total = create_subobjects(root, obj, data, total)
     return total
@@ -152,11 +142,11 @@ def create_object(context, portal_type, data):
     args = dict(id=unique_id)
     if portal_type in ['Image', 'File']:
         myfile = StringIO(decodestring('R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
-        ext =  portal_type == 'Image' and 'gif' or 'dat'
+        ext = portal_type == 'Image' and 'gif' or 'dat'
         myfile.filename = '.'.join((get_text_line().split(' ')[-1], ext))
-        args.update({'file':myfile})
+        args.update({'file': myfile})
 
-    new_id= context.invokeFactory(portal_type, **args)
+    new_id = context.invokeFactory(portal_type, **args)
     obj = context[new_id]
 
     if IDexterityContent.providedBy(obj):
@@ -177,8 +167,8 @@ def create_object(context, portal_type, data):
         img_content = getter.get(params=params, text=title)
         if img_content:
             field.set(obj, img_content)
-            log.info('[%s] got dummy image for %s' % (getter.name,
-                                                      '/'.join(obj.getPhysicalPath())))
+            log.info('[%s] got dummy image for %s'
+                     % (getter.name, '/'.join(obj.getPhysicalPath())))
     # subject
     subject = obj.getField('subject')
     if subject and data.get('subjects'):
@@ -211,7 +201,7 @@ def get_text_paragraph():
 
 
 def get_rich_text(data):
-    url =  BASE_URL + '/3/short'
+    url = BASE_URL + '/3/short'
     for key, default in OPTIONS.items():
         if key in data.get('formatting', []):
             url += '/%s' % key
@@ -241,8 +231,10 @@ def get_dexterity_schemas(context=None, portal_type=None):
 
     fti = component.getUtility(IDexterityFTI, name=portal_type)
     schemas = [fti.lookupSchema()]
-    for behavior_schema in \
-            utils.getAdditionalSchemata(context=context, portal_type=portal_type):
+    for behavior_schema in utils.getAdditionalSchemata(
+            context=context,
+            portal_type=portal_type):
+
         if behavior_schema is not None:
             schemas.append(behavior_schema)
     return schemas
@@ -257,8 +249,8 @@ def get_dummy_dexterity_value(obj, widget, data):
             vocabulary = field.vocabulary
         elif shasattr(field, 'vocabularyName') and field.vocabularyName:
             factory = component.getUtility(
-                            interfaces.IVocabularyFactory,
-                            field.vocabularyName)
+                interfaces.IVocabularyFactory,
+                field.vocabularyName)
             vocabulary = factory(obj)
         else:
             return
@@ -273,11 +265,11 @@ def get_dummy_dexterity_value(obj, widget, data):
             if interfaces.ITreeVocabulary.providedBy(vocabulary):
                 # Can't yet deal with tree vocabs
                 return
-            index  = random.randint(0, len(vocabulary)-1)
+            index = random.randint(0, len(vocabulary)-1)
             value = vocabulary._terms[index].value
 
     elif interfaces.IBool.providedBy(field):
-        value = random.randint(0,1) and True or False
+        value = random.randint(0, 1) and True or False
 
     elif interfaces.ITextLine.providedBy(field):
         if HAS_USERANDGROUPSELECTIONWIDGET and \
@@ -296,12 +288,12 @@ def get_dummy_dexterity_value(obj, widget, data):
             value = unicode(get_text_paragraph())
 
     elif interfaces.IDatetime.providedBy(field):
-        days = random.random()*10 * (random.randint(-1,1) or 1)
-        value = datetime.datetime.now() + datetime.timedelta(days,0)
+        days = random.random()*10 * (random.randint(-1, 1) or 1)
+        value = datetime.datetime.now() + datetime.timedelta(days, 0)
 
     elif interfaces.IDate.providedBy(field):
-        days = random.random()*10 * (random.randint(-1,1) or 1)
-        value = datetime.datetime.now() + datetime.timedelta(days,0)
+        days = random.random()*10 * (random.randint(-1, 1) or 1)
+        value = datetime.datetime.now() + datetime.timedelta(days, 0)
 
     return value
 
@@ -316,7 +308,8 @@ def populate_dexterity_type(obj, data):
                 widgetclass = utils.resolveDottedName(autoform_widgets[name])
                 widget = widgetclass(field, request)
             else:
-                widget = component.getMultiAdapter((field, request), IFieldWidget)
+                widget = component.getMultiAdapter(
+                    (field, request), IFieldWidget)
 
             widget.context = obj
             widget.ignoreRequest = True
@@ -344,7 +337,9 @@ def populate_archetype(obj, data):
         if name in ['title', 'id']:
             continue
 
-        if shasattr(field, 'vocabulary') and IVocabulary.providedBy(field.vocabulary):
+        if shasattr(field, 'vocabulary') and \
+                IVocabulary.providedBy(field.vocabulary):
+
             vocab = field.vocabulary.getVocabularyDict(obj)
             value = vocab.keys()[random.randint(0, len(vocab.keys())-1)]
 
@@ -365,14 +360,14 @@ def populate_archetype(obj, data):
                 value = get_text_paragraph()
 
         elif atfield.IBooleanField.providedBy(field):
-            value = random.randint(0,1) and True or False
+            value = random.randint(0, 1) and True or False
         else:
             continue
 
         field.set(obj, value)
 
     if IATEvent.providedBy(obj):
-        days = random.random()*20 * (random.randint(-1,1) or 1)
+        days = random.random()*20 * (random.randint(-1, 1) or 1)
         value = DateTime() + days
         obj.setStartDate(value)
         obj.setEndDate(value+random.random()*3)
