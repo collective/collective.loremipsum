@@ -17,6 +17,7 @@ from collective.loremipsum.config import OPTIONS
 
 log = logging.getLogger(__name__)
 
+
 class RegisterDummyUsers(BrowserView):
     """ """
 
@@ -35,7 +36,7 @@ class RegisterDummyUsers(BrowserView):
                 # We will use the headers in the first row as variable names to
                 # store the user's details in portal_memberdata.
                 dummy_fields = row
-            else:   
+            else:
                 properties = {}
                 for field in dummy_fields:
                     # Since we don't know what properties might be in
@@ -47,34 +48,34 @@ class RegisterDummyUsers(BrowserView):
                         if hasattr(mdata, f):
                             properties[f] = row[dummy_fields.index(field)]
 
-                fullname = row[0] + ' ' + row[1] 
+                fullname = row[0] + ' ' + row[1]
                 username = self.sanitize(fullname.lower().replace(' ', '-'))
-                properties['username'] = username 
+                properties['username'] = username
                 properties['fullname'] = fullname
                 try:
                     # addMember() returns MemberData object
                     member = regtool.addMember(username, 'secret', properties=properties)
                 except ValueError, e:
                     # Give user visual feedback what went wrong
-                    IStatusMessage(self.request).add(_(u"Could not create the users. %s" % username) + unicode(e), "error") 
+                    IStatusMessage(self.request).add(_(u"Could not create the users. %s" % username) + unicode(e), "error")
                     continue
                 else:
                     log.info('Registered dummy user: %s' % fullname)
             row_num += 1
 
-        IStatusMessage(self.request).add(_(u"Succesfully created %d users." % (row_num-1)), "info") 
+        IStatusMessage(self.request).add(_(u"Succesfully created %d users." % (row_num-1)), "info")
         return self.request.RESPONSE.redirect('/'.join(self.context.getPhysicalPath()))
 
     def sanitize(self, str):
-        for code, ascii in [('\xc3\xbc', 'ue'), 
+        for code, ascii in [('\xc3\xbc', 'ue'),
                             ('\xc3\xb6', 'oe'),
-                            ('\xc3\xa4', 'ae'), 
+                            ('\xc3\xa4', 'ae'),
                             ('\xc3\xa7', 'c'),
-                            ('\xc3\xa8', 'e'), 
+                            ('\xc3\xa8', 'e'),
                             ('\xc3\xa9', 'e'),
-                            ('\xc3\xab', 'e'), 
+                            ('\xc3\xab', 'e'),
                             ('\xc3\xaf', 'i'),
-                            ('\xc5\x9e', 'S'), 
+                            ('\xc5\x9e', 'S'),
                             ('\xc5\x9f', 'e'),
                             ]:
             str = str.replace(code, ascii)
@@ -86,7 +87,7 @@ class CreateDummyData(BrowserView):
     """ """
 
     def __call__(self, **kw):
-        """ 
+        """
         type: string - The portal_type of the content type to create
         amount: integer - The amount of objects to create
 
@@ -105,10 +106,10 @@ class CreateDummyData(BrowserView):
 
         recurse: bool - Should objects be created recursively?
 
-        parnum: integer - 
+        parnum: integer -
             The number of paragraphs to generate. (NOT USED)
 
-        length: short, medium, long, verylong - 
+        length: short, medium, long, verylong -
             The average length of a paragraph (NOT USED)
         """
         request = self.request
