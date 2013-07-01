@@ -1,6 +1,7 @@
 from Acquisition import aq_base
 from DateTime import DateTime
 from OFS.interfaces import IObjectManager
+from OFS.CopySupport import CopyError
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces import field as atfield
@@ -53,7 +54,19 @@ log = logging.getLogger(__name__)
 def create_subobjects(root, context, data, total=0):
     amount = int(data.get('amount', 3))
     types = data.get('portal_type')
-    if types is None:
+
+    depth = 0
+    node = context
+    if not IPloneSiteRoot.providedBy(root):
+        while IUUID(node) != IUUID(root):
+            depth += 1
+            node = node.aq_parent
+    else:
+        while not IPloneSiteRoot.providedBy(node):
+            depth += 1
+            node = node.aq_parent
+
+    if types is None or depth > 0:
         base = aq_base(context)
         if IBaseContent.providedBy(base):
             types = []
@@ -76,20 +89,9 @@ def create_subobjects(root, context, data, total=0):
             return total
 
     recurse = False
-    if data.get('recurse', None) not in [None, '0', 'False', False]:
-        depth = 0
-        node = context
-        if not IPloneSiteRoot.providedBy(root):
-            while IUUID(node) != IUUID(root):
-                depth += 1
-                node = node.aq_parent
-        else:
-            while not IPloneSiteRoot.providedBy(node):
-                depth += 1
-                node = node.aq_parent
-
-        if depth < data.get('recursion_depth'):
-            recurse = True
+    if data.get('recurse', None) not in [None, '0', 'False', False] and \
+            depth < data.get('recursion_depth'):
+        recurse = True
 
     for portal_type in types:
         for n in range(0, amount):
@@ -138,10 +140,10 @@ def create_object(context, portal_type, data):
     """ """
     title = get_text_line()
     unique_id = generate_unique_id(context, title, portal_type)
-
     args = dict(id=unique_id)
     if portal_type in ['Image', 'File']:
-        myfile = StringIO(decodestring('R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
+        myfile = StringIO(decodestring(
+            'R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
         ext = portal_type == 'Image' and 'gif' or 'dat'
         myfile.filename = '.'.join((get_text_line().split(' ')[-1], ext))
         args.update({'file': myfile})
@@ -150,31 +152,16 @@ def create_object(context, portal_type, data):
     obj = context[new_id]
 
     if IDexterityContent.providedBy(obj):
-        if shasattr(obj, 'title'):
-            obj.title = title
         populate_dexterity_type(obj, data)
     else:
-        obj.setTitle(title)
         populate_archetype(obj, data)
 
-    generate_image = data.get('generate_images') or obj.portal_type == 'Image'
-
-    if obj.getField('image') and generate_image:
-        field = obj.getField('image')
-        name = data.get('generate_images_service')
-        params = data.get('generate_images_params')
-        getter = component.getUtility(IFakeImageGetter, name=name)
-        img_content = getter.get(params=params, text=title)
-        if img_content:
-            field.set(obj, img_content)
-            log.info('[%s] got dummy image for %s'
-                     % (getter.name, '/'.join(obj.getPhysicalPath())))
-    # subject
-    subject = obj.getField('subject')
-    if subject and data.get('subjects'):
-        subjects = data.get('subjects', '').splitlines() or get_subjects()
-        random.shuffle(subjects)
-        subject.set(obj, subjects[:4])
+    if shasattr(obj, 'title'):
+        # The object now has its title set, so let's give it a new 'id' field
+        # based on its title.
+        title = obj.title
+        unique_id = generate_unique_id(context, title, portal_type)
+        context.manage_renameObject(obj.id, str(unique_id))
 
     if data.get('publish', True):
         wftool = getToolByName(context, 'portal_workflow')
@@ -262,7 +249,8 @@ def get_dummy_dexterity_value(obj, widget, data):
                 return
             value = results[random.randint(0, len(results)-1)].getObject()
         else:
-            if interfaces.ITreeVocabulary.providedBy(vocabulary):
+            if interfaces.ITreeVocabulary.providedBy(vocabulary) or \
+                    not len(vocabulary):
                 # Can't yet deal with tree vocabs
                 return
             index = random.randint(0, len(vocabulary)-1)
@@ -276,7 +264,7 @@ def get_dummy_dexterity_value(obj, widget, data):
                 IUserAndGroupSelectionWidget.providedBy(widget):
             mtool = getToolByName(obj, 'portal_membership')
             mids = mtool.listMemberIds()
-            value = mids[random.randint(0, len(mids)-1)]
+            value = mids[random.randint(0, len(mids)-1 or 1)]
         else:
             length = getattr(field, 'max_length', None)
             value = unicode(get_text_line()[:length])
@@ -334,7 +322,7 @@ def populate_archetype(obj, data):
 
     for field in fields:
         name = field.__name__
-        if name in ['title', 'id']:
+        if name in ['id']:
             continue
 
         if shasattr(field, 'vocabulary') and \
@@ -366,8 +354,29 @@ def populate_archetype(obj, data):
 
         field.set(obj, value)
 
+    # subject
+    subject = obj.getField('subject')
+    if subject and data.get('subjects'):
+        subjects = data.get('subjects', '').splitlines() or get_subjects()
+        random.shuffle(subjects)
+        subject.set(obj, subjects[:4])
+
     if IATEvent.providedBy(obj):
         days = random.random()*20 * (random.randint(-1, 1) or 1)
         value = DateTime() + days
         obj.setStartDate(value)
         obj.setEndDate(value+random.random()*3)
+
+    # Set Images
+    generate_image = data.get('generate_images') or obj.portal_type == 'Image'
+    if obj.getField('image') and generate_image:
+        field = obj.getField('image')
+        name = data.get('generate_images_service')
+        params = data.get('generate_images_params')
+        getter = component.getUtility(IFakeImageGetter, name=name)
+        title = get_text_line()
+        img_content = getter.get(params=params, text=title)
+        if img_content:
+            field.set(obj, img_content)
+            log.info('[%s] got dummy image for %s'
+                     % (getter.name, '/'.join(obj.getPhysicalPath())))
