@@ -57,7 +57,7 @@ class IPopulateFormSchema(interface.Interface):
 
     recurse = schema.Bool(
             title=_(u"Should objects be created recursively?"),
-            description=_(u'description_recurse', 
+            description=_(u'description_recurse',
                     default= u"If the objects added are containers, then new "
                         u"objects will be created inside them and so forth. "
                         u"The types of objects created inside a container are "
@@ -83,7 +83,7 @@ class IPopulateFormSchema(interface.Interface):
     generate_images = schema.Bool(
             title=_(u"Generate fake images' content?"),
             description=_(u"Check this box to get random fake images "
-                    u"for all the items with a field named 'image'."),
+                    u"for all the items with a field named 'image'. ARCHETYPES ONLY"),
             default=False,
             required=False,
             )
@@ -131,7 +131,7 @@ class IPopulateFormSchema(interface.Interface):
             description=_(u"Choose from the formatting options for "
                         u"the lorem ipsum dummy text. This only "
                         u"applies to RichText fields."),
-            default=['ul', 'ol', 'dl', 'bq', 'code', 
+            default=['ul', 'ol', 'dl', 'bq', 'code',
                      'link', 'headers', 'decorate'],
             required=False,
             value_type=schema.Choice(
@@ -169,7 +169,7 @@ class PopulateForm(ExtensibleForm, form.Form):
         context = aq_inner(self.context)
         total = create_subobjects(context, context, data, 0)
         addStatusMessage(
-                self.request, 
+                self.request,
                 'Successfully created %d dummy objects.' % total,
                 type='info')
         self.request.response.redirect(self.context.REQUEST.get('URL'))
