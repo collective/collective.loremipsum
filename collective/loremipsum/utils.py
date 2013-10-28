@@ -1,7 +1,6 @@
 from Acquisition import aq_base
 from DateTime import DateTime
 from OFS.interfaces import IObjectManager
-from OFS.CopySupport import CopyError
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces import field as atfield
@@ -41,12 +40,19 @@ import loremipsum
 import random
 import transaction
 import urllib
+
 try:
     HAS_USERANDGROUPSELECTIONWIDGET = True
     from Products.UserAndGroupSelectionWidget.z3cform.interfaces import \
         IUserAndGroupSelectionWidget
-except:
+except ImportError:
     HAS_USERANDGROUPSELECTIONWIDGET = False
+
+try:
+    HAS_PLONE_APP_TEXTFIELD = True
+    from plone.app.textfield.interfaces import IRichText
+except ImportError:
+    HAS_PLONE_APP_TEXTFIELD = False
 
 log = logging.getLogger(__name__)
 
@@ -275,6 +281,9 @@ def get_dummy_dexterity_value(obj, widget, data):
         else:
             value = unicode(get_text_paragraph())
 
+    elif HAS_PLONE_APP_TEXTFIELD and IRichText.providedBy(field):
+        value = unicode(get_rich_text(data))
+
     elif interfaces.IDatetime.providedBy(field):
         days = random.random()*10 * (random.randint(-1, 1) or 1)
         value = datetime.datetime.now() + datetime.timedelta(days, 0)
@@ -291,9 +300,17 @@ def populate_dexterity_type(obj, data):
     for schema in get_dexterity_schemas(context=obj):
         for name in getFieldNames(schema):
             field = schema[name]
+            if getattr(field, 'readonly', False):
+                continue
             autoform_widgets = schema.queryTaggedValue(WIDGETS_KEY, default={})
             if name in autoform_widgets:
-                widgetclass = utils.resolveDottedName(autoform_widgets[name])
+                try:
+                    widgetclass = utils.resolveDottedName(autoform_widgets[name])
+                except AttributeError:
+                    # XXX: Investigate:
+                    # AttributeError: 'ParameterizedWidget' object has no
+                    # attribute 'split'
+                    continue
                 widget = widgetclass(field, request)
             else:
                 widget = component.getMultiAdapter(
@@ -311,9 +328,8 @@ def populate_dexterity_type(obj, data):
             if value:
                 dm = component.getMultiAdapter((obj, field), IDataManager)
                 try:
-                    dm.set(value)
-                except WrongType:
-                    value = IDataConverter(widget).toFieldValue(value)
+                    dm.set(IDataConverter(widget).toFieldValue(value))
+                except TypeError:
                     dm.set(value)
 
 
