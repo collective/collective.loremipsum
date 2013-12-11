@@ -22,16 +22,16 @@ from collective.loremipsum.fakeimagegetter import DEFAULT_IMAGE_GETTER
 log = logging.getLogger(__name__)
 
 formatting_vocabulary = schema.vocabulary.SimpleVocabulary.fromItems([
-        ("Add unordered lists <ul>", 'ul'),
-        ("Add numbered lists <ol>", 'ol'),
-        ("Add description lists <dl>", 'dl'),
-        ("Add blockquotes <bq>", 'bq'),
-        ("Add code samples <code>", 'code'),
-        ("Add links <link>", 'link'),
-        ("Prude version (removes legitimate latin words like 'sex')", 'prude'),
-        ("Add headers", 'headers'),
-        ("Use ALL CAPS", 'allcaps'),
-        ("Add bold, italic and marked text", 'decorate'),
+        (_(u"Add unordered lists <ul>"), 'ul'),
+        (_(u"Add numbered lists <ol>"), 'ol'),
+        (_(u"Add description lists <dl>"), 'dl'),
+        (_(u"Add blockquotes <bq>"), 'bq'),
+        (_(u"Add code samples <code>"), 'code'),
+        (_(u"Add links <link>"), 'link'),
+        (_(u"Prude version (removes legitimate latin words like 'sex')"), 'prude'),
+        (_(u"Add headers"), 'headers'),
+        (_(u"Use ALL CAPS"), 'allcaps'),
+        (_(u"Add bold, italic and marked text"), 'decorate'),
     ])
 
 
@@ -75,7 +75,7 @@ class IPopulateFormSchema(interface.Interface):
 
     recurse_same_ptypes = schema.Bool(
             title=_(u"Use the same portal types selected above?"),
-            description=_(u'description_recurse',
+            description=_(u'recurse_same_ptypes',
                     default=u"Generate sub-objects using only content types declared into 'Item Type'."),
             default=True,
             )
@@ -170,7 +170,7 @@ class PopulateForm(ExtensibleForm, form.Form):
         total = create_subobjects(context, context, data, 0)
         addStatusMessage(
                 self.request,
-                'Successfully created %d dummy objects.' % total,
+                _(u'Successfully created %d dummy objects.') % total,
                 type='info')
         self.request.response.redirect(self.context.REQUEST.get('URL'))
 

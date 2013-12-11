@@ -1,0 +1,224 @@
+# Leonardo J. Caballero G. <leonardocaballero@gmail.com>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: collective.loremipsum\n"
+"POT-Creation-Date: 2013-12-11 01:13+0000\n"
+"PO-Revision-Date: 2013-12-10 20:09-0430\n"
+"Last-Translator: Leonardo J. Caballero G. <leonardocaballero@gmail.com>\n"
+"Language-Team: ES <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language-Code: es\n"
+"Language-Name: Spanish\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: collective.loremipsum\n"
+"Language: es\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Is-Fallback-For: es-ar es-bo es-cl es-co es-cr es-do es-ec es-es es-sv es-gt es-hn es-mx es-ni es-pa es-py es-pe es-pr es-us es-uy es-ve\n"
+
+#: collective/loremipsum/browser/views.py:129
+msgid "%d objects successfully created"
+msgstr "%d objetos fueron exitosamente creados"
+
+#: collective/loremipsum/browser/populate.py:28
+msgid "Add blockquotes <bq>"
+msgstr "Añadir citas de texto / blockquotes <bq>"
+
+#: collective/loremipsum/browser/populate.py:34
+msgid "Add bold, italic and marked text"
+msgstr "Añadir texto en negritas, cursiva y marcado"
+
+#: collective/loremipsum/browser/populate.py:29
+msgid "Add code samples <code>"
+msgstr "Añadir ejemplos de código <code>"
+
+#: collective/loremipsum/browser/populate.py:27
+msgid "Add description lists <dl>"
+msgstr "Añadir lista de descripción <dl>"
+
+#: collective/loremipsum/browser/populate.py:32
+msgid "Add headers"
+msgstr "Añadir encabezados"
+
+#: collective/loremipsum/browser/populate.py:30
+msgid "Add links <link>"
+msgstr "Añadir enlaces <link>"
+
+#: collective/loremipsum/browser/populate.py:26
+msgid "Add numbered lists <ol>"
+msgstr "Añadir listas numeradas <ol>"
+
+#: collective/loremipsum/browser/populate.py:25
+msgid "Add unordered lists <ul>"
+msgstr "Añadir listas desordenadas <ul>"
+
+#: collective/loremipsum/browser/populate.py:51
+msgid "Amount"
+msgstr "Cantidad"
+
+#: collective/loremipsum/browser/populate.py:122
+msgid "Check this box if the transaction should be committed each time an object is created. This will take more time but might be necessary, for example if you have default values that depend on previous objects being catalogued."
+msgstr ""
+"Marque esta casilla, Si la transacción debe hacer un commit cada vez que se "
+"crea un objeto. Esto tomará más tiempo, pero puede ser necesario, por "
+"ejemplo, si tiene valores por defecto que dependen de los objetos anteriores "
+"para que se estén catalogando."
+
+#: collective/loremipsum/browser/populate.py:85
+msgid "Check this box to get random fake images for all the items with a field named 'image'. ARCHETYPES ONLY"
+msgstr ""
+"Marque esta casilla para obtener imágenes falsas para todos los elementos "
+"con un campo denominado 'imagen'. SOLAMENTE PARA ARCHETYPES"
+
+#: collective/loremipsum/browser/populate.py:131
+msgid "Choose from the formatting options for the lorem ipsum dummy text. This only applies to RichText fields."
+msgstr ""
+"Elija las opciones de formato para el texto lorem ipsum de pruebas. Esto "
+"sólo se aplica a los campos de texto enriquecido."
+
+#: collective/loremipsum/browser/populate.py:52
+msgid "Choose the amount of objects you'd like to be created for each type chosen above. The default is 3."
+msgstr ""
+"Elija la cantidad de objetos que le gustaría ser creados para cada tipo "
+"elegido anteriormente. El valor predeterminado es 3."
+
+#: collective/loremipsum/browser/populate.py:42
+msgid "Choose the types of objects you'd like to create dummies of. The column on the right contains the types that will be created, which is by default all the types allowed in this folder."
+msgstr ""
+"Elija los tipos de objetos que le gustaría crear. La columna de la derecha "
+"contiene los tipos que se van a crear, lo cual es por defecto todos los "
+"tipos permitidos en esta carpeta."
+
+#: collective/loremipsum/browser/populate.py:93
+msgid "Choose which service to use to generate images"
+msgstr "Seleccione el servicio a usar para generar imágenes"
+
+#: collective/loremipsum/browser/populate.py:101
+msgid "Column ';' separated parameters for the image service. Check respective websites for available parameters. Default 'text' is the title of the generated object."
+msgstr ""
+"Los parámetros de la columna separados por ';' para el servicio de imágenes. "
+"Compruebe respectivos sitios web de los parámetros disponibles. Por "
+"defecto, 'text' es el título del objeto generado."
+
+#: collective/loremipsum/browser/populate.py:121
+msgid "Commit between objects"
+msgstr "Commit entre objetos"
+
+#: collective/loremipsum/browser/views.py:60
+msgid "Could not create the users. %s"
+msgstr "No se pudo crear los usuarios. %s"
+
+#: collective/loremipsum/browser/populate.py:143
+msgid "Create the dummy content"
+msgstr "Crear el contenido de prueba"
+
+#: collective/loremipsum/utils.py:85
+msgid "Either restrict the addable types in this folder or provide a type argument."
+msgstr ""
+"Cualquier restricción los tipos añadibles en esta carpeta o proporcionar un "
+"argumento de tipo."
+
+#: collective/loremipsum/browser/populate.py:84
+msgid "Generate fake images' content?"
+msgstr "¿Generar contenido de imágenes falsas?"
+
+#: collective/loremipsum/browser/populate.py:70
+msgid "If objects are created recursively, how many levels deep should they be created?"
+msgstr ""
+"Si los objetos se crean de forma recursiva, ¿cuántos niveles de profundidad "
+"deberían ser creado?"
+
+#: collective/loremipsum/browser/populate.py:100
+msgid "Image parameters"
+msgstr "Parámetros de Imagen"
+
+#: collective/loremipsum/browser/populate.py:92
+msgid "Image service"
+msgstr "Servicio de imagen"
+
+#. Default: "Installs the collective.loremipsum package"
+#: collective/loremipsum/configure.zcml
+msgid "Installs the collective.loremipsum package"
+msgstr "Instala el generador de contenido de prueba para Plone"
+
+#: collective/loremipsum/browser/populate.py:41
+msgid "Item Type"
+msgstr "Tipo de Elemento"
+
+#: collective/loremipsum/browser/populate.py:110
+msgid "Line separated subjects. If none provided a default set will be used."
+msgstr "Línea de sujetos separó. Si ninguno proporcionada se utilizará un conjunto de sujetos predeterminado."
+
+#: collective/loremipsum/browser/populate.py:31
+msgid "Prude version (removes legitimate latin words like 'sex')"
+msgstr "Versión mojigata (elimina palabras latinas legítimas como 'sexo')"
+
+#: collective/loremipsum/browser/populate.py:115
+msgid "Publish objects"
+msgstr "Publicar objetos"
+
+#: collective/loremipsum/browser/populate.py:69
+msgid "Recursion Depth"
+msgstr "Nivel de recursión"
+
+#: collective/loremipsum/browser/populate.py:130
+msgid "Rich Text Formatting"
+msgstr "Formato de texto enriquecido"
+
+#: collective/loremipsum/browser/populate.py:116
+msgid "Should newly created objects be published?"
+msgstr "¿Deberían los objetos recién creados ser publicados?"
+
+#: collective/loremipsum/browser/populate.py:59
+msgid "Should objects be created recursively?"
+msgstr "¿Deberían los objetos ser creados recursivamente?"
+
+#: collective/loremipsum/browser/populate.py:109
+msgid "Subjects"
+msgstr "Asuntos"
+
+#: collective/loremipsum/browser/views.py:66
+msgid "Succesfully created %d users."
+msgstr "Exitosamente fueron creados %d usuarios."
+
+#: collective/loremipsum/browser/populate.py:173
+msgid "Successfully created %d dummy objects."
+msgstr "Exitosamente fueron creados %d objetos de prueba."
+
+#: collective/loremipsum/utils.py:90
+msgid "The context doesn't provide IBaseContent or IDexterityContent. It might be a Plone Site object, but either way, I haven't gotten around to dealing with it. Why don't you jump in and help?"
+msgstr ""
+"El contexto no proporciona IBaseContent o IDexterityContent. Puede ser que "
+"sea un objeto de sitio Plone, pero de cualquier manera, yo no he tenido "
+"tiempo de tratar con eso. ¿Por qué no te unes y me ayudas en esto?"
+
+#: collective/loremipsum/browser/populate.py:33
+msgid "Use ALL CAPS"
+msgstr "Use MAYÚSCULAS"
+
+#: collective/loremipsum/browser/populate.py:77
+msgid "Use the same portal types selected above?"
+msgstr "¿Utilizar el mismo tipo de contenidos seleccionados arriba?"
+
+#. Default: "collective.loremipsum"
+#: collective/loremipsum/configure.zcml
+msgid "collective.loremipsum"
+msgstr ""
+
+#. Default: "If the objects added are containers, then new objects will be created inside them and so forth. The types of objects created inside a container are determined by the allowable types inside that container."
+#: collective/loremipsum/browser/populate.py:60
+msgid "description_recurse"
+msgstr ""
+"Si los objetos añadidos son contenedores, a continuación, los nuevos objetos "
+"se crearán dentro de ellos y así sucesivamente. Los tipos de objetos "
+"creados dentro de un contenedor son determinados por los tipos permitidos "
+"dentro del contenedor."
+
+#. Default: "Generate sub-objects using only content types declared into 'Item Type'."
+#: collective/loremipsum/browser/populate.py:78
+msgid "recurse_same_ptypes"
+msgstr ""
+"Generar sub-objetos utilizando sólo los tipos de contenido declarado en "
+"'Tipo de Elemento'."
