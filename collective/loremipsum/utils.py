@@ -1,6 +1,7 @@
 from Acquisition import aq_base
 from DateTime import DateTime
 from OFS.interfaces import IObjectManager
+from OFS.CopySupport import CopyError
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces import field as atfield
@@ -28,12 +29,12 @@ from z3c.form.interfaces import IDataManager
 from z3c.form.interfaces import IFieldWidget
 from z3c.form.interfaces import NOT_CHANGED
 from z3c.form.interfaces import NO_VALUE
+from z3c.form.interfaces import ISequenceWidget
 from zope import component
 from zope.container.interfaces import INameChooser
 from zope.globalrequest import getRequest
 from zope.schema import getFieldNames
 from zope.schema import interfaces
-from zope.schema.interfaces import WrongType
 import datetime
 import logging
 import loremipsum
@@ -158,7 +159,7 @@ def create_object(context, portal_type, data):
     obj = context[new_id]
 
     if IDexterityContent.providedBy(obj):
-        populate_dexterity_type(obj, data)
+        populate_dexterity(obj, data)
     else:
         populate_archetype(obj, data)
 
@@ -167,7 +168,11 @@ def create_object(context, portal_type, data):
         # based on its title.
         title = obj.title
         unique_id = generate_unique_id(context, title, portal_type)
-        context.manage_renameObject(obj.id, str(unique_id))
+        try:
+            context.manage_renameObject(obj.id, str(unique_id))
+        except CopyError:
+            # On second thought, renaming was a silly idea anyway
+            pass
 
     if data.get('publish', True):
         wftool = getToolByName(context, 'portal_workflow')
@@ -233,34 +238,44 @@ def get_dexterity_schemas(context=None, portal_type=None):
     return schemas
 
 
+def get_value_for_choice(obj, field):
+    catalog = getToolByName(obj, 'portal_catalog')
+    if shasattr(field, 'vocabulary') and field.vocabulary:
+        vocabulary = field.vocabulary
+    elif shasattr(field, 'vocabularyName') and field.vocabularyName:
+        factory = component.getUtility(
+            interfaces.IVocabularyFactory,
+            field.vocabularyName)
+        vocabulary = factory(obj)
+    else:
+        return
+
+    if interfaces.IContextSourceBinder.providedBy(vocabulary):
+        criteria = vocabulary.selectable_filter.criteria
+        results = catalog(**criteria)
+        if not len(results):
+            return
+        value = results[random.randint(0, len(results)-1)].getObject()
+    else:
+        if interfaces.ITreeVocabulary.providedBy(vocabulary) or \
+                not len(vocabulary):
+            # Can't yet deal with tree vocabs
+            return
+        index = random.randint(0, len(vocabulary)-1)
+        value = vocabulary._terms[index].value
+    return value
+
+
 def get_dummy_dexterity_value(obj, widget, data):
     value = None
     field = widget.field
-    catalog = getToolByName(obj, 'portal_catalog')
-    if interfaces.IChoice.providedBy(field):
-        if shasattr(field, 'vocabulary') and field.vocabulary:
-            vocabulary = field.vocabulary
-        elif shasattr(field, 'vocabularyName') and field.vocabularyName:
-            factory = component.getUtility(
-                interfaces.IVocabularyFactory,
-                field.vocabularyName)
-            vocabulary = factory(obj)
-        else:
-            return
 
-        if interfaces.IContextSourceBinder.providedBy(vocabulary):
-            criteria = vocabulary.selectable_filter.criteria
-            results = catalog(**criteria)
-            if not len(results):
-                return
-            value = results[random.randint(0, len(results)-1)].getObject()
-        else:
-            if interfaces.ITreeVocabulary.providedBy(vocabulary) or \
-                    not len(vocabulary):
-                # Can't yet deal with tree vocabs
-                return
-            index = random.randint(0, len(vocabulary)-1)
-            value = vocabulary._terms[index].value
+    if interfaces.IChoice.providedBy(field):
+        value = get_value_for_choice(obj, field)
+
+    elif interfaces.ISet.providedBy(field) and \
+            interfaces.IChoice.providedBy(field.value_type):
+        value = get_value_for_choice(obj, field.value_type)
 
     elif interfaces.IBool.providedBy(field):
         value = random.randint(0, 1) and True or False
@@ -295,7 +310,7 @@ def get_dummy_dexterity_value(obj, widget, data):
     return value
 
 
-def populate_dexterity_type(obj, data):
+def populate_dexterity(obj, data):
     request = getRequest()
     for schema in get_dexterity_schemas(context=obj):
         for name in getFieldNames(schema):
@@ -305,7 +320,8 @@ def populate_dexterity_type(obj, data):
             autoform_widgets = schema.queryTaggedValue(WIDGETS_KEY, default={})
             if name in autoform_widgets:
                 try:
-                    widgetclass = utils.resolveDottedName(autoform_widgets[name])
+                    widgetclass = utils.resolveDottedName(
+                        autoform_widgets[name])
                 except AttributeError:
                     # XXX: Investigate:
                     # AttributeError: 'ParameterizedWidget' object has no
@@ -324,6 +340,8 @@ def populate_dexterity_type(obj, data):
             if not value or value in [NOT_CHANGED, NO_VALUE] or \
                     not IDataConverter(widget).toFieldValue(widget.value):
                 value = get_dummy_dexterity_value(obj, widget, data)
+                if ISequenceWidget.providedBy(widget):
+                    value = [value]
 
             if value:
                 dm = component.getMultiAdapter((obj, field), IDataManager)
