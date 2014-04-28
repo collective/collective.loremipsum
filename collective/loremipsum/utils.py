@@ -331,17 +331,16 @@ def populate_dexterity(obj, data):
             widget.ignoreRequest = True
             widget.update()
             if name == 'title':
-                value = data['title']
+                value = unicode(data['title'])
             else:
                 value = widget.value
-
-            if not value or value in [NOT_CHANGED, NO_VALUE] or \
-                    not IDataConverter(widget).toFieldValue(widget.value):
-                value = get_dummy_dexterity_value(obj, widget, data)
-                if not value:
-                    continue
-                if ISequenceWidget.providedBy(widget):
-                    value = [value]
+                if not value or value in [NOT_CHANGED, NO_VALUE] or \
+                        not IDataConverter(widget).toFieldValue(value):
+                    value = get_dummy_dexterity_value(obj, widget, data)
+                    if not value:
+                        continue
+                    if ISequenceWidget.providedBy(widget):
+                        value = [value]
 
             if value:
                 dm = component.getMultiAdapter((obj, field), IDataManager)
