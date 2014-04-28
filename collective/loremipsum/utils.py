@@ -83,7 +83,7 @@ def create_subobjects(root, context, data, total=0):
             fti = component.getUtility(IDexterityFTI, name=context.portal_type)
             types = fti.filter_content_types and fti.allowed_content_types
             if not types:
-                msg = _('Either restrict the addable types in this folder ' \
+                msg = _('Either restrict the addable types in this folder '
                         'or provide a type argument.')
                 addStatusMessage(context.request, msg)
                 return total
@@ -340,6 +340,8 @@ def populate_dexterity(obj, data):
             if not value or value in [NOT_CHANGED, NO_VALUE] or \
                     not IDataConverter(widget).toFieldValue(widget.value):
                 value = get_dummy_dexterity_value(obj, widget, data)
+                if not value:
+                    continue
                 if ISequenceWidget.providedBy(widget):
                     value = [value]
 
