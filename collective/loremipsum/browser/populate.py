@@ -105,6 +105,16 @@ class IPopulateFormSchema(interface.Interface):
             required=False,
             )
 
+    type_in_title = schema.Bool(
+            title=_(u"Include the type name in the title"),
+            description=_(
+                u"It's sometimes difficult to determine the type of "
+                u"an object populated with lorem ipsum text. This option "
+                u"helps  by including the type of object in its title."),
+            required=False,
+            )
+
+
     subjects = schema.Text(
             title=_(u"Subjects"),
             description=_(u"Line separated subjects. If none provided a default set will be used."),

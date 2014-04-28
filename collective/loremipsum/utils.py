@@ -1,7 +1,6 @@
 from Acquisition import aq_base
 from DateTime import DateTime
 from OFS.interfaces import IObjectManager
-from OFS.CopySupport import CopyError
 from Products.ATContentTypes.interfaces import IATEvent
 from Products.Archetypes.Widget import RichWidget
 from Products.Archetypes.interfaces import field as atfield
@@ -10,7 +9,6 @@ from Products.Archetypes.interfaces.vocabulary import IVocabulary
 from Products.Archetypes.utils import addStatusMessage
 from Products.Archetypes.utils import shasattr
 from Products.CMFCore.WorkflowCore import WorkflowException
-from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
 from StringIO import StringIO
 from base64 import decodestring
@@ -18,6 +16,7 @@ from collective.loremipsum import MessageFactory as _
 from collective.loremipsum.config import BASE_URL
 from collective.loremipsum.config import OPTIONS
 from collective.loremipsum.fakeimagegetter import IFakeImageGetter
+from plone import api
 from plone.app.z3cform.wysiwyg.widget import IWysiwygWidget
 from plone.autoform.interfaces import WIDGETS_KEY
 from plone.dexterity import utils
@@ -27,9 +26,9 @@ from plone.uuid.interfaces import IUUID
 from z3c.form.interfaces import IDataConverter
 from z3c.form.interfaces import IDataManager
 from z3c.form.interfaces import IFieldWidget
+from z3c.form.interfaces import ISequenceWidget
 from z3c.form.interfaces import NOT_CHANGED
 from z3c.form.interfaces import NO_VALUE
-from z3c.form.interfaces import ISequenceWidget
 from zope import component
 from zope.container.interfaces import INameChooser
 from zope.globalrequest import getRequest
@@ -123,7 +122,7 @@ def create_subobjects(root, context, data, total=0):
 
 def generate_unique_id(container, name, portal_type):
     name = name.lstrip('+@') or portal_type
-    name = name.replace(' ', '-').replace('/', '-').lower()
+    name = name.replace(':', '').replace(' ', '-').replace('/', '-').lower()
     # for an existing name, append a number.
     # We should keep client's os.path.extsep (not ours), we assume it's '.'
     dot = name.rfind('.')
@@ -146,8 +145,15 @@ def generate_unique_id(container, name, portal_type):
 def create_object(context, portal_type, data):
     """ """
     title = get_text_line()
+    if data.get('type_in_title'):
+        pt = api.portal.get_tool('portal_types')
+        title = '%s: %s' % (
+            pt.getTypeInfo(portal_type).title,
+            title
+        )
+    data['title'] = title
     unique_id = generate_unique_id(context, title, portal_type)
-    args = dict(id=unique_id)
+    args = {'id': unique_id}
     if portal_type in ['Image', 'File']:
         myfile = StringIO(decodestring(
             'R0lGODlhAQABAPAAAPj8+AAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='))
@@ -163,19 +169,8 @@ def create_object(context, portal_type, data):
     else:
         populate_archetype(obj, data)
 
-    if shasattr(obj, 'title'):
-        # The object now has its title set, so let's give it a new 'id' field
-        # based on its title.
-        title = obj.title
-        unique_id = generate_unique_id(context, title, portal_type)
-        try:
-            context.manage_renameObject(obj.id, str(unique_id))
-        except CopyError:
-            # On second thought, renaming was a silly idea anyway
-            pass
-
     if data.get('publish', True):
-        wftool = getToolByName(context, 'portal_workflow')
+        wftool = api.portal.get_tool('portal_workflow')
         try:
             wftool.doActionFor(obj, 'publish')
         except WorkflowException, e:
@@ -239,7 +234,7 @@ def get_dexterity_schemas(context=None, portal_type=None):
 
 
 def get_value_for_choice(obj, field):
-    catalog = getToolByName(obj, 'portal_catalog')
+    catalog = api.portal.get_tool('portal_catalog')
     if shasattr(field, 'vocabulary') and field.vocabulary:
         vocabulary = field.vocabulary
     elif shasattr(field, 'vocabularyName') and field.vocabularyName:
@@ -283,7 +278,7 @@ def get_dummy_dexterity_value(obj, widget, data):
     elif interfaces.ITextLine.providedBy(field):
         if HAS_USERANDGROUPSELECTIONWIDGET and \
                 IUserAndGroupSelectionWidget.providedBy(widget):
-            mtool = getToolByName(obj, 'portal_membership')
+            mtool = api.portal.get_tool('portal_membership')
             mids = mtool.listMemberIds()
             value = mids[random.randint(0, len(mids)-1 or 1)]
         else:
@@ -335,7 +330,10 @@ def populate_dexterity(obj, data):
             widget.context = obj
             widget.ignoreRequest = True
             widget.update()
-            value = widget.value
+            if name == 'title':
+                value = data['title']
+            else:
+                value = widget.value
 
             if not value or value in [NOT_CHANGED, NO_VALUE] or \
                     not IDataConverter(widget).toFieldValue(widget.value):
@@ -355,13 +353,15 @@ def populate_dexterity(obj, data):
 
 def populate_archetype(obj, data):
     fields = obj.Schema().fields()
-
     for field in fields:
         name = field.__name__
         if name in ['id']:
             continue
 
-        if shasattr(field, 'vocabulary') and \
+        if name == 'title':
+            value = data['title']
+
+        elif shasattr(field, 'vocabulary') and \
                 IVocabulary.providedBy(field.vocabulary):
 
             vocab = field.vocabulary.getVocabularyDict(obj)
