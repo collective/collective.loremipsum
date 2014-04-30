@@ -26,7 +26,6 @@ from plone.uuid.interfaces import IUUID
 from z3c.form.interfaces import IDataConverter
 from z3c.form.interfaces import IDataManager
 from z3c.form.interfaces import IFieldWidget
-from z3c.form.interfaces import ISequenceWidget
 from z3c.form.interfaces import NOT_CHANGED
 from z3c.form.interfaces import NO_VALUE
 from zope import component
@@ -40,6 +39,12 @@ import loremipsum
 import random
 import transaction
 import urllib
+
+try:
+    from plone.formwidget.recurrence.z3cform.interfaces import IRecurrenceWidget
+    HAS_RECURRENCE_WIDGET = True
+except ImportError:
+    HAS_RECURRENCE_WIDGET = False
 
 try:
     HAS_USERANDGROUPSELECTIONWIDGET = True
@@ -60,6 +65,7 @@ log = logging.getLogger(__name__)
 def create_subobjects(root, context, data, total=0):
     amount = int(data.get('amount', 3))
     types = data.get('portal_type')
+    request = getRequest()
 
     depth = 0
     node = context
@@ -84,14 +90,14 @@ def create_subobjects(root, context, data, total=0):
             if not types:
                 msg = _('Either restrict the addable types in this folder '
                         'or provide a type argument.')
-                addStatusMessage(context.request, msg)
+                addStatusMessage(request, msg)
                 return total
         else:
             msg = _("The context doesn't provide IBaseContent or "
                     "IDexterityContent. It might be a Plone Site object, "
                     "but either way, I haven't gotten around to dealing with "
                     "it. Why don't you jump in and help?")
-            addStatusMessage(context.request, msg)
+            addStatusMessage(request, msg)
             return total
 
     recurse = False
@@ -257,14 +263,13 @@ def get_value_for_choice(obj, field):
             # Can't yet deal with tree vocabs
             return
         index = random.randint(0, len(vocabulary)-1)
-        value = vocabulary._terms[index].value
+        value = vocabulary._terms[index].token
     return value
 
 
 def get_dummy_dexterity_value(obj, widget, data):
     value = None
     field = widget.field
-
     if interfaces.IChoice.providedBy(field):
         value = get_value_for_choice(obj, field)
 
@@ -330,6 +335,11 @@ def populate_dexterity(obj, data):
             widget.context = obj
             widget.ignoreRequest = True
             widget.update()
+
+            if HAS_RECURRENCE_WIDGET and IRecurrenceWidget.providedBy(widget):
+                # We cannot yet deal with the recurrence widget
+                continue
+
             if name == 'title':
                 value = unicode(data['title'])
             else:
@@ -337,9 +347,10 @@ def populate_dexterity(obj, data):
                 if not value or value in [NOT_CHANGED, NO_VALUE] or \
                         not IDataConverter(widget).toFieldValue(value):
                     value = get_dummy_dexterity_value(obj, widget, data)
-                    if not value:
+                    if value is None:
                         continue
-                    if ISequenceWidget.providedBy(widget):
+                    if interfaces.ICollection.providedBy(widget.field) or \
+                            interfaces.IChoice.providedBy(widget.field):
                         value = [value]
 
             if value:
