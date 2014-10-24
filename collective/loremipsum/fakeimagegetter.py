@@ -59,9 +59,16 @@ class FakeImageGetter(object):
         # http://stackoverflow.com/questions/265960/
         # best-way-to-strip-punctuation-from-a-string-in-python
         if 'text' in data.keys():
-            trans_table = string.maketrans(" ", " ")
-            data['text'] = data['text'].translate(trans_table,
-                                                  string.punctuation)
+            if isinstance(data['text'], unicode):
+                # Handle unicode
+                # http://stackoverflow.com/questions/23175809/
+                # typeerror-translate-takes-one-argument-2-given-python
+                trans_table = {ord(c): None for c in string.punctuation}
+                data['text'] = data['text'].translate(trans_table)
+            else:
+                trans_table = string.maketrans(" ", " ")
+                data['text'] = data['text'].translate(trans_table,
+                                                      string.punctuation)
         return data
 
     def get_url(self, **kwargs):
