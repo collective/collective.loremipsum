@@ -315,6 +315,9 @@ def populate_dexterity(obj, data):
     for schema in get_dexterity_schemas(context=obj):
         for name in getFieldNames(schema):
             field = schema[name]
+            if name in ['expires', 'effective', 'relatedItems']:
+                # skip some fields
+                continue
             if getattr(field, 'readonly', False):
                 continue
             autoform_widgets = schema.queryTaggedValue(WIDGETS_KEY, default={})
