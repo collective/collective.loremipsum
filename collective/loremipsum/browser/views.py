@@ -1,19 +1,14 @@
-import csv
-import os
-import logging
-
-from zope.component.hooks import getSite
-
 from Acquisition import aq_inner
-
 from Products.Archetypes.utils import addStatusMessage
-from Products.CMFCore.utils import getToolByName
 from Products.Five import BrowserView
 from Products.statusmessages.interfaces import IStatusMessage
-
 from collective.loremipsum import MessageFactory as _
-from collective.loremipsum.utils import create_subobjects
 from collective.loremipsum.config import OPTIONS
+from collective.loremipsum.utils import create_subobjects
+from plone import api
+import csv
+import logging
+import os
 
 log = logging.getLogger(__name__)
 
@@ -23,9 +18,11 @@ class RegisterDummyUsers(BrowserView):
 
     def __call__(self, **kw):
         """ """
-        site = getSite()
-        mdata = getToolByName(site, 'portal_memberdata')
-        regtool = getToolByName(site, 'portal_registration')
+        mdata = api.portal.get_tool('portal_memberdata')
+        regtool = api.portal.get_tool('portal_registration')
+        portal_props = api.portal.get_tool('portal_properties')
+        props = portal_props.site_properties
+        use_email_as_login = props.getProperty('use_email_as_login')
         basedir = os.path.abspath(os.path.dirname(__file__))
         datadir = os.path.join(basedir, '../dummydata')
         file = open(datadir+'/memberdata.csv')
@@ -49,7 +46,11 @@ class RegisterDummyUsers(BrowserView):
                             properties[f] = row[dummy_fields.index(field)]
 
                 fullname = row[0] + ' ' + row[1]
-                username = self.sanitize(fullname.lower().replace(' ', '-'))
+
+                if use_email_as_login:
+                    username = properties['email']
+                else:
+                    username = self.sanitize(fullname.lower().replace(' ', '-'))
                 properties['username'] = username
                 properties['fullname'] = fullname
                 try:
