@@ -8,7 +8,6 @@
    <property
       name="url_expr">string:${plone_context_state/canonical_object_url}/@@populate</property>
    <property name="icon_expr"></property>
-   <property name="available_expr">object/displayContentsTab</property>
    <property name="permissions">
     <element value="collective.loremipsum: Can Populate"/>
    </property>
